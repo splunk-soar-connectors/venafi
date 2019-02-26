@@ -1,0 +1,1194 @@
+{
+    "appid": "9e412afa-771a-4acf-a33b-fdc05c205692",
+    "name": "Venafi",
+    "description": "This app integrates with an instance of Venafi to perform generic and investigative actions",
+    "type": "identity management",
+    "product_vendor": "Venafi",
+    "logo": "logo_venafi.svg",
+    "logo_dark": "logo_venafi_dark.svg",
+    "product_name": "Venafi",
+    "product_version_regex": ".*",
+    "publisher": "Splunk",
+    "license": "Copyright (c) Splunk, 2019",
+    "app_version": "1.0.0",
+    "utctime_updated": "2019-01-11T23:42:47.987973Z",
+    "package_name": "phantom_venafi",
+    "main_module": "venafi_connector.pyc",
+    "min_phantom_version": "4.1.32",
+    "app_wizard_version": "1.0.0",
+    "configuration": {
+        "base_url": {
+            "description": "Venafi API URL",
+            "data_type": "string",
+            "required": true,
+            "value_list": [],
+            "default": "",
+            "order": 0
+        },
+        "username": {
+            "description": "Venafi API Username to authenticate with",
+            "data_type": "string",
+            "required": true,
+            "value_list": [],
+            "default": "",
+            "order": 1
+        },
+        "password": {
+            "description": "Venafi API Password to authenticate with",
+            "data_type": "password",
+            "required": true,
+            "value_list": [],
+            "default": "",
+            "order": 2
+        }
+    },
+    "actions": [
+        {
+            "action": "test connectivity",
+            "identifier": "test_connectivity",
+            "description": "Validate the asset configuration for connectivity using supplied configuration",
+            "verbose": "",
+            "type": "test",
+            "read_only": true,
+            "parameters": {},
+            "output": [],
+            "versions": "EQ(*)"
+        },
+        {
+            "action": "list policies",
+            "identifier": "list_policies",
+            "description": "Returns a list of all policies in Venafi",
+            "verbose": "",
+            "type": "investigate",
+            "read_only": false,
+            "parameters": {},
+            "output": [
+                {
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "example_values": [
+                        "success"
+                    ]
+                },
+                {
+                    "data_path": "action_result.message",
+                    "data_type": "string",
+                    "example_values": [
+                        "Num policies: 3"
+                    ]
+                },
+                {
+                    "data_path": "summary.total_objects",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                },
+                {
+                    "data_path": "summary.total_objects_successful",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.DN",
+                    "data_type": "string",
+                    "example_values": [
+                        "\\VED\\Policy\\Certificates\\Splunk"
+                    ],
+                    "column_name": "Policy DN",
+                    "column_order": 1,
+                    "contains": [
+                        "venafi policy dn"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.Name",
+                    "data_type": "string",
+                    "example_values": [
+                        "Splunk"
+                    ],
+                    "column_name": "Policy",
+                    "column_order": 0
+                },
+                {
+                    "data_path": "action_result.data.*.Parent",
+                    "data_type": "string",
+                    "example_values": [
+                        "\\VED\\Policy\\Certificates"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.TypeName",
+                    "data_type": "string",
+                    "example_values": [
+                        "Policy"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.AbsoluteGUID",
+                    "data_type": "string",
+                    "example_values": [
+                        "{798ee447-74f4-4c8a-8972-62aff3b2fee3}{266d63f4-0bfc-468a-b41f-d8fa477bd1c0}{5020eaa0-1de7-4be4-bfe8-fbcb7e948502}{842cbb4b-1cde-4d48-9684-a04effa3be7f}"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.GUID",
+                    "data_type": "string",
+                    "example_values": [
+                        "{842cbb4b-1cde-4d48-9684-a04effa3be7f}"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.Id",
+                    "data_type": "numeric",
+                    "example_values": [
+                        2139
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.Revision",
+                    "data_type": "numeric",
+                    "example_values": [
+                        636747885144784172
+                    ]
+                },
+                {
+                    "data_path": "action_result.summary.num_policies",
+                    "data_type": "numeric",
+                    "example_values": [
+                        3
+                    ]
+                }
+            ],
+            "render": {
+                "type": "table"
+            },
+            "versions": "EQ(*)"
+        },
+        {
+            "action": "create certificate",
+            "identifier": "create_certificate",
+            "description": "Enrolls a certificate in Venafi",
+            "verbose": "Either Subject or ObjectName parameter must be filled out",
+            "type": "generic",
+            "read_only": false,
+            "parameters": {
+                "policy_dn": {
+                    "description": "The folder DN for the new certificate",
+                    "data_type": "string",
+                    "required": true,
+                    "primary": true,
+                    "value_list": [],
+                    "default": "",
+                    "order": 0,
+                    "contains": [
+                        "venafi policy dn"
+                    ]
+                },
+                "subject": {
+                    "description": "The Common Name (CN) field for the certificate",
+                    "data_type": "string",
+                    "required": false,
+                    "primary": true,
+                    "contains": [],
+                    "value_list": [],
+                    "default": "",
+                    "order": 1
+                },
+                "object_name": {
+                    "description": "The Common Name (CN) field for the certificate",
+                    "data_type": "string",
+                    "required": false,
+                    "primary": true,
+                    "contains": [],
+                    "value_list": [],
+                    "default": "",
+                    "order": 2
+                },
+                "approvers": {
+                    "description": "An array of one or more identities for certificate workflow approvers",
+                    "data_type": "string",
+                    "required": false,
+                    "primary": true,
+                    "contains": [],
+                    "value_list": [],
+                    "default": "",
+                    "order": 3
+                },
+                "cadn": {
+                    "description": "The Distinguished Name (DN) of the Trust Protection Platform Certificate Authority Template object",
+                    "data_type": "string",
+                    "required": false,
+                    "primary": true,
+                    "contains": [],
+                    "value_list": [],
+                    "default": "",
+                    "order": 4
+                },
+                "ca_specific_attributes": {
+                    "description": "An array of name/value pairs providing any CA attributes to be stored with the Certificate object and submitted to the CA during enrollment",
+                    "data_type": "string",
+                    "required": false,
+                    "primary": true,
+                    "contains": [],
+                    "value_list": [],
+                    "default": "",
+                    "order": 5
+                },
+                "city": {
+                    "description": "Locality/City attribute of Certificate",
+                    "data_type": "string",
+                    "required": false,
+                    "primary": true,
+                    "contains": [],
+                    "value_list": [],
+                    "default": "",
+                    "order": 6
+                },
+                "contacts": {
+                    "description": "An array of one or more identities for users or groups who receive notifications about events pertaining to the object",
+                    "data_type": "string",
+                    "required": false,
+                    "primary": true,
+                    "contains": [],
+                    "value_list": [],
+                    "default": "",
+                    "order": 7
+                },
+                "created_by": {
+                    "description": "The setting to identify the object that initiated enrollment or provisioning changes",
+                    "data_type": "string",
+                    "required": false,
+                    "primary": true,
+                    "contains": [],
+                    "value_list": [],
+                    "default": "",
+                    "order": 8
+                },
+                "devices": {
+                    "description": "An array of devices that require enrollment or provisioning",
+                    "data_type": "string",
+                    "required": false,
+                    "primary": true,
+                    "contains": [],
+                    "value_list": [],
+                    "default": "",
+                    "order": 9
+                },
+                "disable_automatic_renewal": {
+                    "description": "The setting to control whether manual intervention is required for certificate renewal",
+                    "data_type": "boolean",
+                    "required": false,
+                    "primary": true,
+                    "default": false,
+                    "order": 10
+                },
+                "elliptical_curve": {
+                    "description": "P256, P384, or P521 encryption for Elliptical Curve Cryptography",
+                    "data_type": "string",
+                    "required": false,
+                    "primary": true,
+                    "contains": [],
+                    "value_list": [],
+                    "default": "",
+                    "order": 11
+                },
+                "key_algorithm": {
+                    "description": "Algorithm for public key of Certificate",
+                    "data_type": "string",
+                    "required": false,
+                    "primary": true,
+                    "contains": [],
+                    "value_list": [],
+                    "default": "",
+                    "order": 12
+                },
+                "key_bit_size": {
+                    "description": "The number of bits to allow for key generation",
+                    "data_type": "numeric",
+                    "required": false,
+                    "primary": true,
+                    "contains": [],
+                    "value_list": [],
+                    "default": "",
+                    "order": 14
+                },
+                "management_type": {
+                    "description": "The level of management that Trust Protection Platform applies to the certificate",
+                    "data_type": "numeric",
+                    "required": false,
+                    "primary": true,
+                    "contains": [],
+                    "value_list": [],
+                    "default": "",
+                    "order": 15
+                },
+                "organization": {
+                    "description": "Organization attribute of Certificate",
+                    "data_type": "string",
+                    "required": false,
+                    "primary": true,
+                    "contains": [],
+                    "value_list": [],
+                    "default": "",
+                    "order": 16
+                },
+                "organizational_unit": {
+                    "description": "Organizational unit attribute of Certificate",
+                    "data_type": "string",
+                    "required": false,
+                    "primary": true,
+                    "contains": [],
+                    "value_list": [],
+                    "default": "",
+                    "order": 17
+                },
+                "pkcs10": {
+                    "description": "The PKCS10 formatted CSR for the certificate",
+                    "data_type": "string",
+                    "required": false,
+                    "primary": true,
+                    "contains": [],
+                    "value_list": [],
+                    "default": "",
+                    "order": 18
+                },
+                "reenable": {
+                    "description": "Option to renew a previously disabled certificate",
+                    "data_type": "boolean",
+                    "required": false,
+                    "primary": true,
+                    "default": false,
+                    "order": 19
+                },
+                "set_work_to_do": {
+                    "description": "Option to control certificate processing",
+                    "data_type": "boolean",
+                    "required": false,
+                    "primary": true,
+                    "default": false,
+                    "order": 20
+                },
+                "state": {
+                    "description": "State/Province attribute of Certificate",
+                    "data_type": "string",
+                    "required": false,
+                    "primary": true,
+                    "contains": [],
+                    "value_list": [],
+                    "default": "",
+                    "order": 21
+                },
+                "subject_alt_names": {
+                    "description": "Array of subject alternative names (SANS) for the certificate",
+                    "data_type": "string",
+                    "required": false,
+                    "primary": true,
+                    "contains": [],
+                    "value_list": [],
+                    "default": "",
+                    "order": 22
+                }
+            },
+            "output": [
+                {
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "example_values": [
+                        "success"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.CertificateDN",
+                    "data_type": "string",
+                    "column_name": "Certificate DN",
+                    "column_order": 0,
+                    "example_values": [
+                        "\\VED\\Policy\\Certificates\\Splunk\\splk.com"
+                    ],
+                    "contains": [
+                        "venafi certificate dn"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.Guid",
+                    "data_type": "string",
+                    "column_name": "Certificate GUID",
+                    "column_order": 1,
+                    "example_values": [
+                        "56906419-8615-40ce-b556-63db74ae833b"
+                    ]
+                },
+                {
+                    "data_path": "action_result.message",
+                    "data_type": "string",
+                    "example_values": [
+                        "Status: Successfully added certificate"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.policy_dn",
+                    "data_type": "string",
+                    "example_values": [
+                        "\\\\VED\\\\Policy\\\\Certificates\\\\Splunk"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.disable_automatic_renewal",
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.reenable",
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.set_work_to_do",
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.subject",
+                    "data_type": "string",
+                    "example_values": [
+                        "splk.com"
+                    ]
+                },
+                {
+                    "data_path": "action_result.summary.status",
+                    "data_type": "string",
+                    "example_values": [
+                        "Successfully added certificate"
+                    ]
+                },
+                {
+                    "data_path": "summary.total_objects",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                },
+                {
+                    "data_path": "summary.total_objects_successful",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                }
+            ],
+            "render": {
+                "type": "table"
+            },
+            "versions": "EQ(*)"
+        },
+        {
+            "action": "list certificates",
+            "identifier": "list_certificates",
+            "description": "returns a list of certificates in Venafi",
+            "verbose": "Returns certificate details and total number of certificates that match specified search filters",
+            "type": "investigate",
+            "read_only": false,
+            "parameters": {
+                "limit": {
+                    "description": "Maximum number of certificates to return",
+                    "data_type": "string",
+                    "required": false,
+                    "primary": true,
+                    "contains": [],
+                    "value_list": [],
+                    "default": "",
+                    "order": 0
+                },
+                "offset": {
+                    "description": "Number of results to skip (offset=5 begins results at page five)",
+                    "data_type": "string",
+                    "required": false,
+                    "primary": true,
+                    "contains": [],
+                    "value_list": [],
+                    "default": "",
+                    "order": 1
+                },
+                "country": {
+                    "description": "Country attribute of Certificate",
+                    "data_type": "string",
+                    "required": false,
+                    "primary": true,
+                    "contains": [],
+                    "value_list": [],
+                    "default": "",
+                    "order": 2
+                },
+                "common_name": {
+                    "description": "Common name attribute of Certificate",
+                    "data_type": "string",
+                    "required": false,
+                    "primary": true,
+                    "contains": [
+                        "domain"
+                    ],
+                    "value_list": [],
+                    "default": "",
+                    "order": 3
+                },
+                "key_algorithm": {
+                    "description": "Algorithm for public key of Certificate",
+                    "data_type": "string",
+                    "required": false,
+                    "primary": true,
+                    "contains": [],
+                    "value_list": [],
+                    "default": "",
+                    "order": 4
+                },
+                "key_size": {
+                    "description": "Public key size of Certificate",
+                    "data_type": "numeric",
+                    "required": false,
+                    "primary": true,
+                    "contains": [],
+                    "value_list": [],
+                    "default": "",
+                    "order": 5
+                },
+                "key_size_greater": {
+                    "description": "Find certificates with a key size greater than the specified value",
+                    "data_type": "numeric",
+                    "required": false,
+                    "primary": true,
+                    "contains": [],
+                    "value_list": [],
+                    "default": "",
+                    "order": 6
+                },
+                "key_size_less": {
+                    "description": "Find certificates with a key size less than the specified value",
+                    "data_type": "numeric",
+                    "required": false,
+                    "primary": true,
+                    "contains": [],
+                    "value_list": [],
+                    "default": "",
+                    "order": 7
+                },
+                "city": {
+                    "description": "Locality/City attribute of Certificate",
+                    "data_type": "string",
+                    "required": false,
+                    "primary": true,
+                    "contains": [],
+                    "value_list": [],
+                    "default": "",
+                    "order": 8
+                },
+                "organization": {
+                    "description": "Organization attribute of Certificate",
+                    "data_type": "string",
+                    "required": false,
+                    "primary": true,
+                    "contains": [],
+                    "value_list": [],
+                    "default": "",
+                    "order": 9
+                },
+                "organization_unit": {
+                    "description": "Organization unit attribute of Certificate",
+                    "data_type": "string",
+                    "required": false,
+                    "primary": true,
+                    "contains": [],
+                    "value_list": [],
+                    "default": "",
+                    "order": 10
+                },
+                "state": {
+                    "description": "State/Province attribute of Certificate",
+                    "data_type": "string",
+                    "required": false,
+                    "primary": true,
+                    "contains": [],
+                    "value_list": [],
+                    "default": "",
+                    "order": 11
+                },
+                "san_dns": {
+                    "description": "Subject Alternative Name (SAN) Distinguished Name Server (DNS) attribute of Certificate",
+                    "data_type": "string",
+                    "required": false,
+                    "primary": true,
+                    "contains": [
+                        "domain"
+                    ],
+                    "value_list": [],
+                    "default": "",
+                    "order": 12
+                },
+                "san_email": {
+                    "description": "Subject Alternative Name (SAN) Email RFC822 attribute of Certificate",
+                    "data_type": "string",
+                    "required": false,
+                    "primary": true,
+                    "contains": [
+                        "email"
+                    ],
+                    "value_list": [],
+                    "default": "",
+                    "order": 13
+                },
+                "san_ip": {
+                    "description": "Subject Alternative Name (SAN) IP Address attribute of Certificate",
+                    "data_type": "string",
+                    "required": false,
+                    "primary": true,
+                    "contains": [
+                        "ip"
+                    ],
+                    "value_list": [],
+                    "default": "",
+                    "order": 14
+                },
+                "san_upn": {
+                    "description": "Subject Alternative Name (SAN) User Principle Name (UPN) attribute of Certificate",
+                    "data_type": "string",
+                    "required": false,
+                    "primary": true,
+                    "contains": [
+                        "email"
+                    ],
+                    "value_list": [],
+                    "default": "",
+                    "order": 15
+                },
+                "san_uri": {
+                    "description": "Subject Alternative Name (SAN) Uniform Resource Identifier (URI) attribute of Certificate",
+                    "data_type": "string",
+                    "required": false,
+                    "primary": true,
+                    "contains": [
+                        "url"
+                    ],
+                    "value_list": [],
+                    "default": "",
+                    "order": 16
+                },
+                "serial": {
+                    "description": "Serial number attribute of Certificate",
+                    "data_type": "string",
+                    "required": false,
+                    "primary": true,
+                    "contains": [],
+                    "value_list": [],
+                    "default": "",
+                    "order": 17
+                },
+                "signature_algorithm": {
+                    "description": "Algorithm used to sign the Certificate",
+                    "data_type": "string",
+                    "required": false,
+                    "primary": true,
+                    "contains": [],
+                    "value_list": [],
+                    "default": "",
+                    "order": 18
+                },
+                "thumbprint": {
+                    "description": "SHA-1 thumbprint of the Certificate",
+                    "data_type": "string",
+                    "required": false,
+                    "primary": true,
+                    "contains": [],
+                    "value_list": [],
+                    "default": "",
+                    "order": 19
+                },
+                "valid_from": {
+                    "description": "YYYY-MM-DD or ISO 8601 format YYYY-MM-DDTHH:MM:SS.mmmmmmmZ (Find certificates by the date of issue)",
+                    "data_type": "string",
+                    "required": false,
+                    "primary": true,
+                    "contains": [],
+                    "value_list": [],
+                    "default": "",
+                    "order": 20
+                },
+                "valid_to": {
+                    "description": "YYYY-MM-DD or ISO 8601 format YYYY-MM-DDTHH:MM:SS.mmmmmmmZ (Find certificates by expiration date)",
+                    "data_type": "string",
+                    "required": false,
+                    "primary": true,
+                    "contains": [],
+                    "value_list": [],
+                    "default": "",
+                    "order": 21
+                },
+                "valid_to_greater": {
+                    "description": "YYYY-MM-DD or ISO 8601 format YYYY-MM-DDTHH:MM:SS.mmmmmmmZ (Find certificates that expire after a certain date)",
+                    "data_type": "string",
+                    "required": false,
+                    "primary": true,
+                    "contains": [],
+                    "value_list": [],
+                    "default": "",
+                    "order": 22
+                },
+                "valid_to_less": {
+                    "description": "YYYY-MM-DD or ISO 8601 format YYYY-MM-DDTHH:MM:SS.mmmmmmmZ (Find certificates that expire before a certain date)",
+                    "data_type": "string",
+                    "required": false,
+                    "primary": true,
+                    "contains": [],
+                    "value_list": [],
+                    "default": "",
+                    "order": 23
+                }
+            },
+            "output": [
+                {
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "example_values": [
+                        "success"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.DN",
+                    "data_type": "string",
+                    "column_name": "Distinguished Name",
+                    "column_order": 1,
+                    "example_values": [
+                        "\\VED\\Policy\\Certificates\\Splunk\\Venafi Generated\\newcert.venafi.com"
+                    ],
+                    "contains": [
+                        "venafi certificate dn"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.Name",
+                    "data_type": "string",
+                    "column_name": "Certificate",
+                    "column_order": 0,
+                    "example_values": [
+                        "newcert.venafi.com"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.X509.SANS.DNS",
+                    "data_type": "string",
+                    "example_values": [
+                        "pge.com"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.X509.ValidTo",
+                    "data_type": "string",
+                    "example_values": [
+                        "2020-01-23T00:38:25.0000000Z"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.X509.Thumbprint",
+                    "data_type": "string",
+                    "example_values": [
+                        "C4E820E21CF57502CE915DDFC6B4D129056E8C49"
+                    ],
+                    "contains": [
+                        "sha1"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.X509.Serial",
+                    "data_type": "string",
+                    "example_values": [
+                        "208B73D4000100009A92"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.X509.ValidFrom",
+                    "data_type": "string",
+                    "example_values": [
+                        "2019-01-23T00:38:25.0000000Z"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.X509.CN",
+                    "data_type": "string",
+                    "example_values": [
+                        "newcert.venafi.com"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.ParentDn",
+                    "data_type": "string",
+                    "example_values": [
+                        "\\VED\\Policy\\Certificates\\Splunk\\Venafi Generated"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*._links.*.Details",
+                    "data_type": "string",
+                    "example_values": [
+                        "/vedsdk/certificates/%7b125827f9-938f-42fe-a1a6-475afdc51448%7d"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.SchemaClass",
+                    "data_type": "string",
+                    "example_values": [
+                        "X509 Server Certificate"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.Guid",
+                    "data_type": "string",
+                    "example_values": [
+                        "{125827f9-938f-42fe-a1a6-475afdc51448}"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.CreatedOn",
+                    "data_type": "string",
+                    "example_values": [
+                        "2018-10-26T15:30:01.6903192Z"
+                    ]
+                },
+                {
+                    "data_path": "action_result.message",
+                    "data_type": "string",
+                    "example_values": [
+                        "Num certificates: 5"
+                    ]
+                },
+                {
+                    "data_path": "action_result.summary.num_certificates",
+                    "data_type": "numeric",
+                    "example_values": [
+                        5
+                    ]
+                },
+                {
+                    "data_path": "summary.total_objects",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                },
+                {
+                    "data_path": "summary.total_objects_successful",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                }
+            ],
+            "render": {
+                "type": "table"
+            },
+            "versions": "EQ(*)"
+        },
+        {
+            "action": "renew certificate",
+            "identifier": "renew_certificate",
+            "description": "requests immediate renewal for an existing certificate in Venafi",
+            "verbose": "a renewable certificate cannot be currently processing, in error, or contain a 'Monitoring' Management Type",
+            "type": "generic",
+            "read_only": false,
+            "parameters": {
+                "certificate_dn": {
+                    "description": "The Distinguished Name (DN) of the certificate to renew",
+                    "data_type": "string",
+                    "required": true,
+                    "primary": true,
+                    "value_list": [],
+                    "default": "",
+                    "order": 0,
+                    "contains": [
+                        "venafi certificate dn"
+                    ]
+                },
+                "pkcs10": {
+                    "description": "The PKCS10 formatted CSR to use for the renewal",
+                    "data_type": "string",
+                    "required": false,
+                    "primary": true,
+                    "contains": [],
+                    "value_list": [],
+                    "default": "",
+                    "order": 1
+                },
+                "reenable": {
+                    "description": "Option to renew a previously disabled certificate",
+                    "data_type": "boolean",
+                    "required": false,
+                    "primary": true,
+                    "contains": [],
+                    "value_list": [],
+                    "default": "",
+                    "order": 1
+                }
+            },
+            "output": [
+                {
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "column_name": "status",
+                    "column_order": 1
+                },
+                {
+                    "data_path": "action_result.message",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "summary.total_objects",
+                    "data_type": "numeric"
+                },
+                {
+                    "data_path": "summary.total_objects_successful",
+                    "data_type": "numeric"
+                }
+            ],
+            "render": {
+                "type": "table"
+            },
+            "versions": "EQ(*)"
+        },
+        {
+            "action": "revoke certificate",
+            "identifier": "revoke_certificate",
+            "description": "Requests to revoke an existing certificate in Venafi",
+            "verbose": "The caller must have write permissions to the certificate object and either the CertificateDN or the Thumbprint parameter must be provided",
+            "type": "correct",
+            "read_only": false,
+            "parameters": {
+                "certificate_dn": {
+                    "description": "The Distinguished Name (DN) of the certificate to revoke",
+                    "data_type": "string",
+                    "required": false,
+                    "primary": true,
+                    "value_list": [],
+                    "default": "",
+                    "order": 0,
+                    "contains": [
+                        "venafi certificate dn"
+                    ]
+                },
+                "thumbprint": {
+                    "description": "The thumbprint (hash) of the certificate to revoke",
+                    "data_type": "string",
+                    "required": false,
+                    "primary": true,
+                    "contains": [],
+                    "value_list": [],
+                    "default": "",
+                    "order": 1
+                },
+                "reason": {
+                    "description": "The reason for revocation of the certificate. 0: None, 1: User key compromised, 2: CA key compromised, 3: User changed affiliation, 4: Certificate superseded, 5: Original use no longer valid",
+                    "data_type": "numeric",
+                    "required": false,
+                    "primary": true,
+                    "contains": [],
+                    "value_list": [],
+                    "default": "",
+                    "order": 2
+                },
+                "comments": {
+                    "description": "Details about why the certificate is being revoked",
+                    "data_type": "string",
+                    "required": false,
+                    "primary": true,
+                    "contains": [],
+                    "value_list": [],
+                    "default": "",
+                    "order": 3
+                },
+                "disable": {
+                    "description": "The setting to manage the certificate upon revocation. If true, the certificate is disabled and no new certificate may replace it. If false, the certificate is allowed to be replaced by a new certificate",
+                    "data_type": "boolean",
+                    "required": false,
+                    "primary": true,
+                    "contains": [],
+                    "value_list": [],
+                    "default": "",
+                    "order": 4
+                }
+            },
+            "output": [
+                {
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "column_name": "status",
+                    "column_order": 1
+                },
+                {
+                    "data_path": "action_result.message",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "summary.total_objects",
+                    "data_type": "numeric"
+                },
+                {
+                    "data_path": "summary.total_objects_successful",
+                    "data_type": "numeric"
+                }
+            ],
+            "render": {
+                "type": "table"
+            },
+            "versions": "EQ(*)"
+        },
+        {
+            "action": "get certificate",
+            "identifier": "get_certificate",
+            "description": "Downloads specified certificate to the vault",
+            "verbose": "",
+            "type": "generic",
+            "read_only": false,
+            "parameters": {
+                "certificate_dn": {
+                    "description": "The Distinguished Name (DN) of the certificate to download",
+                    "data_type": "string",
+                    "required": true,
+                    "primary": true,
+                    "contains": [
+                        "venafi certificate dn"
+                    ],
+                    "value_list": [],
+                    "default": "",
+                    "order": 0
+                },
+                "format": {
+                    "description": "The certificate format for the return data",
+                    "data_type": "string",
+                    "required": false,
+                    "primary": true,
+                    "contains": [],
+                    "value_list": [],
+                    "default": "Base64",
+                    "order": 1
+                },
+                "root_first_order": {
+                    "description": "The order of the certificate chain to trust",
+                    "data_type": "boolean",
+                    "required": false,
+                    "primary": true,
+                    "contains": [],
+                    "value_list": [],
+                    "default": "",
+                    "order": 2
+                }
+            },
+            "output": [
+                {
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "example_values": [
+                        "success"
+                    ]
+                },
+                {
+                    "data_path": "action_result.message",
+                    "data_type": "string",
+                    "example_values": [
+                        "Status: Successfully retrieved certificate and downloaded it to vault"
+                    ]
+                },
+                {
+                    "data_path": "summary.total_objects",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                },
+                {
+                    "data_path": "summary.total_objects_successful",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.vault_id",
+                    "data_type": "string",
+                    "example_values": [
+                        "d1d286f38c9e7c50c1998c0ce0974faab4c9258c"
+                    ],
+                    "contains": [
+                        "sha1",
+                        "vault id"
+                    ],
+                    "column_name": "Vault ID",
+                    "column_order": 2
+                },
+                {
+                    "data_path": "action_result.data.*.name",
+                    "data_type": "string",
+                    "example_values": [
+                        "pge.com.cer"
+                    ],
+                    "column_name": "Certificate",
+                    "column_order": 0
+                },
+                {
+                    "data_path": "action_result.data.*.size",
+                    "data_type": "numeric",
+                    "example_values": [
+                        2074
+                    ],
+                    "column_name": "File Size",
+                    "column_order": 3
+                },
+                {
+                    "data_path": "action_result.parameter.certificate_dn",
+                    "data_type": "string",
+                    "example_values": [
+                        "\\VED\\Policy\\Certificates\\Splunk\\Splunk Generated\\pge.com"
+                    ],
+                    "column_name": "Certificate DN",
+                    "column_order": 1,
+                    "contains": [
+                        "venafi certificate dn"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.root_first_order",
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.format",
+                    "data_type": "string",
+                    "example_values": [
+                        "Base64"
+                    ]
+                },
+                {
+                    "data_path": "action_result.summary.status",
+                    "data_type": "string",
+                    "example_values": [
+                        "Successfully retrieved certificate and downloaded it to vault"
+                    ]
+                }
+            ],
+            "render": {
+                "type": "table"
+            },
+            "versions": "EQ(*)"
+        }
+    ]
+}
