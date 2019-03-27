@@ -25,13 +25,19 @@
             "default": "",
             "order": 0
         },
+        "ph_0": {
+            "description": "Placeholder",
+            "data_type": "ph",
+            "required": false,
+            "order": 1
+        },
         "username": {
             "description": "Venafi API Username to authenticate with",
             "data_type": "string",
             "required": true,
             "value_list": [],
             "default": "",
-            "order": 1
+            "order": 2
         },
         "password": {
             "description": "Venafi API Password to authenticate with",
@@ -39,7 +45,7 @@
             "required": true,
             "value_list": [],
             "default": "",
-            "order": 2
+            "order": 3
         }
     },
     "actions": [
