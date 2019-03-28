@@ -220,7 +220,7 @@ class VenafiConnector(BaseConnector):
         action_result.add_data(response)
 
         summary = action_result.update_summary({})
-        summary['status'] = "Successfully added certificate"
+        summary['status'] = "Successfully created certificate"
 
         return action_result.set_status(phantom.APP_SUCCESS)
 

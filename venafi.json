@@ -66,7 +66,7 @@
             "description": "Returns a list of all policies in Venafi",
             "verbose": "",
             "type": "investigate",
-            "read_only": false,
+            "read_only": true,
             "parameters": {},
             "output": [
                 {
@@ -286,7 +286,7 @@
                 "disable_automatic_renewal": {
                     "description": "The setting to control whether manual intervention is required for certificate renewal",
                     "data_type": "boolean",
-                    "required": false,
+                    "required": true,
                     "primary": true,
                     "default": false,
                     "order": 10
@@ -364,7 +364,7 @@
                 "reenable": {
                     "description": "Option to renew a previously disabled certificate",
                     "data_type": "boolean",
-                    "required": false,
+                    "required": true,
                     "primary": true,
                     "default": false,
                     "order": 19
@@ -372,7 +372,7 @@
                 "set_work_to_do": {
                     "description": "Option to control certificate processing",
                     "data_type": "boolean",
-                    "required": false,
+                    "required": true,
                     "primary": true,
                     "default": false,
                     "order": 20
@@ -505,7 +505,7 @@
             "description": "returns a list of certificates in Venafi",
             "verbose": "Returns certificate details and total number of certificates that match specified search filters",
             "type": "investigate",
-            "read_only": false,
+            "read_only": true,
             "parameters": {
                 "limit": {
                     "description": "Maximum number of certificates to return",
@@ -936,7 +936,7 @@
                 "reenable": {
                     "description": "Option to renew a previously disabled certificate",
                     "data_type": "boolean",
-                    "required": false,
+                    "required": true,
                     "primary": true,
                     "contains": [],
                     "value_list": [],
@@ -1061,7 +1061,7 @@
             "description": "Downloads specified certificate to the vault",
             "verbose": "",
             "type": "generic",
-            "read_only": false,
+            "read_only": true,
             "parameters": {
                 "certificate_dn": {
                     "description": "The Distinguished Name (DN) of the certificate to download",
