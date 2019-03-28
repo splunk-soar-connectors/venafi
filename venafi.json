@@ -194,7 +194,7 @@
                     ]
                 },
                 "subject": {
-                    "description": "The Common Name (CN) field for the certificate",
+                    "description": "The Common Name (CN) field for the certificate. Either the subject or object_name parameter must be filled in",
                     "data_type": "string",
                     "required": false,
                     "primary": true,
@@ -204,7 +204,7 @@
                     "order": 1
                 },
                 "object_name": {
-                    "description": "The Common Name (CN) field for the certificate",
+                    "description": "The Common Name (CN) field for the certificate. Either the subject or object_name parameter must be filled in",
                     "data_type": "string",
                     "required": false,
                     "primary": true,
