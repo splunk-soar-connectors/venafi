@@ -262,6 +262,10 @@ class VenafiConnector(BaseConnector):
         # Optional Certificate filter attributes
         params = {}
 
+        if 'limit' in param:
+            params['limit'] = param['limit']
+        if 'offset' in param:
+            params['offset'] = param['offset']
         if 'country' in param:
             params['C'] = param['country']
         if 'common_name' in param:
@@ -318,7 +322,7 @@ class VenafiConnector(BaseConnector):
             action_result.add_data(certificate)
 
         summary = action_result.update_summary({})
-        summary['num_certificates'] = response['TotalCount']
+        summary['num_certificates'] = len(response['Certificates'])
 
         return action_result.set_status(phantom.APP_SUCCESS)
 
