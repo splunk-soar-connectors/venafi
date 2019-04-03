@@ -96,9 +96,14 @@ class VenafiConnector(BaseConnector):
         if 200 <= r.status_code < 399:
             return RetVal(phantom.APP_SUCCESS, resp_json)
 
+        if 'ErrorDetails' in resp_json:
+            message = resp_json['ErrorDetails']
+        elif 'Error' in resp_json:
+            message = resp_json['Error']
         # You should process the error returned in the json
-        message = u"Error from server. Status Code: {0} Data from server: {1}".format(
-                r.status_code, r.text.replace(u'{', u'{{').replace(u'}', u'}}'))
+        else:
+            message = u"Error from server. Status Code: {0} Data from server: {1}".format(
+                    r.status_code, r.text.replace(u'{', u'{{').replace(u'}', u'}}'))
 
         return RetVal(action_result.set_status(phantom.APP_ERROR, message), None)
 
