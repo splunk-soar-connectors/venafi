@@ -21,8 +21,6 @@
             "description": "Venafi API URL",
             "data_type": "string",
             "required": true,
-            "value_list": [],
-            "default": "",
             "order": 0
         },
         "ph_0": {
@@ -35,16 +33,12 @@
             "description": "Venafi API Username to authenticate with",
             "data_type": "string",
             "required": true,
-            "value_list": [],
-            "default": "",
             "order": 2
         },
         "password": {
             "description": "Venafi API Password to authenticate with",
             "data_type": "password",
             "required": true,
-            "value_list": [],
-            "default": "",
             "order": 3
         }
     },
@@ -53,7 +47,6 @@
             "action": "test connectivity",
             "identifier": "test_connectivity",
             "description": "Validate the asset configuration for connectivity using supplied configuration",
-            "verbose": "",
             "type": "test",
             "read_only": true,
             "parameters": {},
@@ -64,7 +57,6 @@
             "action": "list policies",
             "identifier": "list_policies",
             "description": "Returns a list of all policies in Venafi",
-            "verbose": "",
             "type": "investigate",
             "read_only": true,
             "parameters": {},
@@ -186,8 +178,6 @@
                     "data_type": "string",
                     "required": true,
                     "primary": true,
-                    "value_list": [],
-                    "default": "",
                     "order": 0,
                     "contains": [
                         "venafi policy dn"
@@ -198,8 +188,6 @@
                     "data_type": "string",
                     "required": false,
                     "primary": true,
-                    "value_list": [],
-                    "default": "",
                     "order": 1
                 },
                 "object_name": {
@@ -207,8 +195,6 @@
                     "data_type": "string",
                     "required": false,
                     "primary": true,
-                    "value_list": [],
-                    "default": "",
                     "order": 2
                 },
                 "approvers": {
@@ -216,8 +202,6 @@
                     "data_type": "string",
                     "required": false,
                     "primary": true,
-                    "value_list": [],
-                    "default": "",
                     "order": 3
                 },
                 "cadn": {
@@ -225,8 +209,6 @@
                     "data_type": "string",
                     "required": false,
                     "primary": true,
-                    "value_list": [],
-                    "default": "",
                     "order": 4
                 },
                 "ca_specific_attributes": {
@@ -234,8 +216,6 @@
                     "data_type": "string",
                     "required": false,
                     "primary": true,
-                    "value_list": [],
-                    "default": "",
                     "order": 5
                 },
                 "city": {
@@ -243,8 +223,6 @@
                     "data_type": "string",
                     "required": false,
                     "primary": true,
-                    "value_list": [],
-                    "default": "",
                     "order": 6
                 },
                 "contacts": {
@@ -252,8 +230,6 @@
                     "data_type": "string",
                     "required": false,
                     "primary": true,
-                    "value_list": [],
-                    "default": "",
                     "order": 7
                 },
                 "created_by": {
@@ -261,8 +237,6 @@
                     "data_type": "string",
                     "required": false,
                     "primary": true,
-                    "value_list": [],
-                    "default": "",
                     "order": 8
                 },
                 "devices": {
@@ -270,8 +244,6 @@
                     "data_type": "string",
                     "required": false,
                     "primary": true,
-                    "value_list": [],
-                    "default": "",
                     "order": 9
                 },
                 "disable_automatic_renewal": {
@@ -287,8 +259,11 @@
                     "data_type": "string",
                     "required": false,
                     "primary": true,
-                    "value_list": [],
-                    "default": "",
+                    "value_list": [
+                        "P256",
+                        "P384",
+                        "P521"
+                    ],
                     "order": 11
                 },
                 "key_algorithm": {
@@ -296,8 +271,10 @@
                     "data_type": "string",
                     "required": false,
                     "primary": true,
-                    "value_list": [],
-                    "default": "",
+                    "value_list": [
+                        "RSA",
+                        "ECC"
+                    ],
                     "order": 12
                 },
                 "key_bit_size": {
@@ -305,8 +282,6 @@
                     "data_type": "numeric",
                     "required": false,
                     "primary": true,
-                    "value_list": [],
-                    "default": "",
                     "order": 14
                 },
                 "management_type": {
@@ -314,8 +289,12 @@
                     "data_type": "numeric",
                     "required": false,
                     "primary": true,
-                    "value_list": [],
-                    "default": "",
+                    "value_list": [
+                        "Enrollment",
+                        "Provisioning",
+                        "Monitoring",
+                        "Unassigned"
+                    ],
                     "order": 15
                 },
                 "organization": {
@@ -323,8 +302,6 @@
                     "data_type": "string",
                     "required": false,
                     "primary": true,
-                    "value_list": [],
-                    "default": "",
                     "order": 16
                 },
                 "organizational_unit": {
@@ -332,8 +309,6 @@
                     "data_type": "string",
                     "required": false,
                     "primary": true,
-                    "value_list": [],
-                    "default": "",
                     "order": 17
                 },
                 "pkcs10": {
@@ -341,8 +316,6 @@
                     "data_type": "string",
                     "required": false,
                     "primary": true,
-                    "value_list": [],
-                    "default": "",
                     "order": 18
                 },
                 "reenable": {
@@ -366,8 +339,6 @@
                     "data_type": "string",
                     "required": false,
                     "primary": true,
-                    "value_list": [],
-                    "default": "",
                     "order": 21
                 },
                 "subject_alt_names": {
@@ -375,8 +346,6 @@
                     "data_type": "string",
                     "required": false,
                     "primary": true,
-                    "value_list": [],
-                    "default": "",
                     "order": 22
                 }
             },
@@ -568,12 +537,10 @@
             "read_only": true,
             "parameters": {
                 "limit": {
-                    "description": "Maximum number of certificates to return",
+                    "description": "Maximum number of certificates to return. Possible values are 1-100",
                     "data_type": "numeric",
                     "required": false,
                     "primary": true,
-                    "value_list": [],
-                    "default": "",
                     "order": 0
                 },
                 "offset": {
@@ -581,8 +548,6 @@
                     "data_type": "numeric",
                     "required": false,
                     "primary": true,
-                    "value_list": [],
-                    "default": "",
                     "order": 1
                 },
                 "country": {
@@ -590,8 +555,6 @@
                     "data_type": "string",
                     "required": false,
                     "primary": true,
-                    "value_list": [],
-                    "default": "",
                     "order": 2
                 },
                 "common_name": {
@@ -602,8 +565,6 @@
                     "contains": [
                         "domain"
                     ],
-                    "value_list": [],
-                    "default": "",
                     "order": 3
                 },
                 "key_algorithm": {
@@ -611,8 +572,6 @@
                     "data_type": "string",
                     "required": false,
                     "primary": true,
-                    "value_list": [],
-                    "default": "",
                     "order": 4
                 },
                 "key_size": {
@@ -620,8 +579,6 @@
                     "data_type": "numeric",
                     "required": false,
                     "primary": true,
-                    "value_list": [],
-                    "default": "",
                     "order": 5
                 },
                 "key_size_greater": {
@@ -629,8 +586,6 @@
                     "data_type": "numeric",
                     "required": false,
                     "primary": true,
-                    "value_list": [],
-                    "default": "",
                     "order": 6
                 },
                 "key_size_less": {
@@ -638,8 +593,6 @@
                     "data_type": "numeric",
                     "required": false,
                     "primary": true,
-                    "value_list": [],
-                    "default": "",
                     "order": 7
                 },
                 "city": {
@@ -647,8 +600,6 @@
                     "data_type": "string",
                     "required": false,
                     "primary": true,
-                    "value_list": [],
-                    "default": "",
                     "order": 8
                 },
                 "organization": {
@@ -656,8 +607,6 @@
                     "data_type": "string",
                     "required": false,
                     "primary": true,
-                    "value_list": [],
-                    "default": "",
                     "order": 9
                 },
                 "organization_unit": {
@@ -665,8 +614,6 @@
                     "data_type": "string",
                     "required": false,
                     "primary": true,
-                    "value_list": [],
-                    "default": "",
                     "order": 10
                 },
                 "state": {
@@ -674,8 +621,6 @@
                     "data_type": "string",
                     "required": false,
                     "primary": true,
-                    "value_list": [],
-                    "default": "",
                     "order": 11
                 },
                 "san_dns": {
@@ -686,8 +631,6 @@
                     "contains": [
                         "domain"
                     ],
-                    "value_list": [],
-                    "default": "",
                     "order": 12
                 },
                 "san_email": {
@@ -698,8 +641,6 @@
                     "contains": [
                         "email"
                     ],
-                    "value_list": [],
-                    "default": "",
                     "order": 13
                 },
                 "san_ip": {
@@ -710,8 +651,6 @@
                     "contains": [
                         "ip"
                     ],
-                    "value_list": [],
-                    "default": "",
                     "order": 14
                 },
                 "san_upn": {
@@ -722,8 +661,6 @@
                     "contains": [
                         "email"
                     ],
-                    "value_list": [],
-                    "default": "",
                     "order": 15
                 },
                 "san_uri": {
@@ -734,8 +671,6 @@
                     "contains": [
                         "url"
                     ],
-                    "value_list": [],
-                    "default": "",
                     "order": 16
                 },
                 "serial": {
@@ -743,8 +678,6 @@
                     "data_type": "string",
                     "required": false,
                     "primary": true,
-                    "value_list": [],
-                    "default": "",
                     "order": 17
                 },
                 "signature_algorithm": {
@@ -752,8 +685,6 @@
                     "data_type": "string",
                     "required": false,
                     "primary": true,
-                    "value_list": [],
-                    "default": "",
                     "order": 18
                 },
                 "thumbprint": {
@@ -764,8 +695,6 @@
                     "contains": [
                         "sha1"
                     ],
-                    "value_list": [],
-                    "default": "",
                     "order": 19
                 },
                 "valid_from": {
@@ -773,8 +702,6 @@
                     "data_type": "string",
                     "required": false,
                     "primary": true,
-                    "value_list": [],
-                    "default": "",
                     "order": 20
                 },
                 "valid_to": {
@@ -782,8 +709,6 @@
                     "data_type": "string",
                     "required": false,
                     "primary": true,
-                    "value_list": [],
-                    "default": "",
                     "order": 21
                 },
                 "valid_to_greater": {
@@ -791,8 +716,6 @@
                     "data_type": "string",
                     "required": false,
                     "primary": true,
-                    "value_list": [],
-                    "default": "",
                     "order": 22
                 },
                 "valid_to_less": {
@@ -800,8 +723,6 @@
                     "data_type": "string",
                     "required": false,
                     "primary": true,
-                    "value_list": [],
-                    "default": "",
                     "order": 23
                 }
             },
@@ -1095,8 +1016,6 @@
                     "data_type": "string",
                     "required": true,
                     "primary": true,
-                    "value_list": [],
-                    "default": "",
                     "order": 0,
                     "contains": [
                         "venafi certificate dn"
@@ -1107,8 +1026,6 @@
                     "data_type": "string",
                     "required": false,
                     "primary": true,
-                    "value_list": [],
-                    "default": "",
                     "order": 1
                 },
                 "reenable": {
@@ -1116,8 +1033,6 @@
                     "data_type": "boolean",
                     "required": true,
                     "primary": true,
-                    "value_list": [],
-                    "default": "",
                     "order": 1
                 }
             },
@@ -1208,8 +1123,6 @@
                     "data_type": "string",
                     "required": false,
                     "primary": true,
-                    "value_list": [],
-                    "default": "",
                     "order": 0,
                     "contains": [
                         "venafi certificate dn"
@@ -1223,8 +1136,6 @@
                     "contains": [
                         "sha1"
                     ],
-                    "value_list": [],
-                    "default": "",
                     "order": 1
                 },
                 "reason": {
@@ -1232,8 +1143,14 @@
                     "data_type": "numeric",
                     "required": false,
                     "primary": true,
-                    "value_list": [],
-                    "default": "",
+                    "value_list": [
+                        "0",
+                        "1",
+                        "2",
+                        "3",
+                        "4",
+                        "5"
+                    ],
                     "order": 2
                 },
                 "comments": {
@@ -1241,8 +1158,6 @@
                     "data_type": "string",
                     "required": false,
                     "primary": true,
-                    "value_list": [],
-                    "default": "",
                     "order": 3
                 },
                 "disable": {
@@ -1250,8 +1165,6 @@
                     "data_type": "boolean",
                     "required": false,
                     "primary": true,
-                    "value_list": [],
-                    "default": "",
                     "order": 4
                 }
             },
@@ -1335,7 +1248,6 @@
             "action": "get certificate",
             "identifier": "get_certificate",
             "description": "Downloads specified certificate to the vault",
-            "verbose": "",
             "type": "generic",
             "read_only": true,
             "parameters": {
@@ -1347,8 +1259,6 @@
                     "contains": [
                         "venafi certificate dn"
                     ],
-                    "value_list": [],
-                    "default": "",
                     "order": 0
                 },
                 "format": {
@@ -1356,18 +1266,58 @@
                     "data_type": "string",
                     "required": false,
                     "primary": true,
-                    "value_list": [],
+                    "value_list": [
+                        "Base64",
+                        "Base64 (PKCS #8)",
+                        "DER",
+                        "JKS",
+                        "PKCS #7",
+                        "PKCS #12"
+                    ],
                     "default": "Base64",
                     "order": 1
+                },
+                "friendly_name": {
+                    "description": "The label or alias to use for Base64, JKS, or PKCS #12 formats. Required for the JKS format",
+                    "data_type": "string",
+                    "required": false,
+                    "primary": true,
+                    "order": 2
+                },
+                "include_chain": {
+                    "description": "When the Format is Base64, PKCS #7, PKCS #12, or JKS, you can include the parent or root chain in the return data",
+                    "data_type": "boolean",
+                    "required": false,
+                    "primary": true,
+                    "order": 3
+                },
+                "include_private_key": {
+                    "description": "When the Format is Base64, PKCS #12, or JKS, you can specify whether to return the private key",
+                    "data_type": "boolean",
+                    "required": false,
+                    "primary": true,
+                    "order": 4
+                },
+                "keystore_password": {
+                    "description": "If the Format is JKS, you must set a keystore password. Use the same requirements as required for the Password parameter",
+                    "data_type": "string",
+                    "required": false,
+                    "primary": true,
+                    "order": 5
+                },
+                "password": {
+                    "description": "If the IncludePrivateKey value is true, you must create a password. Password must be 12 characters and comprised of at least 3 of the following: uppercase alphabetic letters, lowercase alphabetic letters, numeric characters, special characters",
+                    "data_type": "string",
+                    "required": false,
+                    "primary": true,
+                    "order": 6
                 },
                 "root_first_order": {
                     "description": "The order of the certificate chain to trust",
                     "data_type": "boolean",
                     "required": false,
                     "primary": true,
-                    "value_list": [],
-                    "default": "",
-                    "order": 2
+                    "order": 7
                 }
             },
             "output": [
@@ -1456,6 +1406,34 @@
                     "example_values": [
                         "Base64"
                     ]
+                },
+                {
+                    "data_path": "action_result.parameter.include_chain",
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.password",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.parameter.include_private_key",
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.keystore_password",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.parameter.friendly_name",
+                    "data_type": "string"
                 },
                 {
                     "data_path": "action_result.summary.status",
