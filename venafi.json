@@ -563,7 +563,8 @@
                     "required": false,
                     "primary": true,
                     "contains": [
-                        "domain"
+                        "domain",
+                        "url"
                     ],
                     "order": 3
                 },
@@ -629,7 +630,8 @@
                     "required": false,
                     "primary": true,
                     "contains": [
-                        "domain"
+                        "domain",
+                        "url"
                     ],
                     "order": 12
                 },
@@ -918,7 +920,8 @@
                     "data_path": "action_result.parameter.common_name",
                     "data_type": "string",
                     "contains": [
-                        "domain"
+                        "domain",
+                        "url"
                     ]
                 },
                 {
@@ -973,7 +976,8 @@
                     "data_path": "action_result.parameter.san_dns",
                     "data_type": "string",
                     "contains": [
-                        "domain"
+                        "domain",
+                        "url"
                     ]
                 },
                 {
