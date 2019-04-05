@@ -256,6 +256,13 @@ class VenafiConnector(BaseConnector):
 
         return action_result.set_status(phantom.APP_SUCCESS)
 
+    def _check_integer(self, value):
+
+        if type(value) != int or int(value) <= 0:
+            return None
+        else:
+            return value
+
     def _handle_list_certificates(self, param):
 
         self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
@@ -268,9 +275,18 @@ class VenafiConnector(BaseConnector):
         params = {}
 
         if 'limit' in param:
-            params['limit'] = param['limit']
+            limit = param.get('limit')
+            if self._check_integer(limit):
+                params['limit'] = self._check_integer(limit)
+            else:
+                return action_result.set_status(phantom.APP_ERROR, "Limit value must be an integer greater than 0")
         if 'offset' in param:
-            params['offset'] = param['offset']
+            offset = param.get('offset')
+            if self._check_integer(offset):
+                params['offset'] = self._check_integer(offset)
+            else:
+                return action_result.set_status(phantom.APP_ERROR, "Offset value must be an integer greater than 0")
+            params['offset'] = self._check_integer(offset)
         if 'country' in param:
             params['C'] = param['country']
         if 'common_name' in param:
