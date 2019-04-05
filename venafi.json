@@ -342,7 +342,7 @@
                     "order": 21
                 },
                 "subject_alt_names": {
-                    "description": "Array of subject alternative names (SANS) for the certificate",
+                    "description": "Skip parameter if the policy already specifies SAN Types. Array of subject alternative names (SANS) for the certificate. For each SAN, specify an array element with a Type and a corresponding Name. For example, SubjectAltNames:[ {Type:2, Name:www.example.com}, {Type:7, Name:9.5.45.11} ]. The Type parameter is an integer that represents the kind of SAN which can be 0:OtherName, 1: Email, 2:DNS, 6: URI, or 7:IPAddress. The Name value is the SAN Friendly name that corresponds to the Type parameter",
                     "data_type": "string",
                     "required": false,
                     "primary": true,

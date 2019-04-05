@@ -208,7 +208,7 @@ class VenafiConnector(BaseConnector):
             "ManagementType": param.get('management_type'),
             "PolicyDN": param['policy_dn'],
             "Subject": param.get('subject'),
-            "SubjectAltNames": param.get('subject_alt_names'),
+            "SubjectAltNames": json.loads(param.get('subject_alt_names')),
             "ObjectName": param.get('object_name'),
             "Organization": param.get('organization'),
             "OrganizationalUnit": param.get('organizational_unit'),
