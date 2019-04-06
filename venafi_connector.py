@@ -47,10 +47,12 @@ class VenafiConnector(BaseConnector):
         headers = {'Content-Type': 'application/json'}
         body = {'Username': self._username, 'Password': self._password}
         ret_val, response = self._make_rest_call(uri, action_result, data=body, headers=headers, method='post')
-        APIKey = response['APIKey']
 
-        if phantom.is_fail(ret_val):
-            return action_result.get_status()
+        try:
+            APIKey = response['APIKey']
+        except Exception:
+            return False
+
         self.save_progress('Successfully generated API Key')
         headers = {'Content-Type': 'application/json', 'X-Venafi-Api-Key': APIKey}
         return headers
@@ -60,6 +62,8 @@ class VenafiConnector(BaseConnector):
         self.save_progress("{}".format(response.status_code))
         if response.status_code == 200:
             return RetVal(phantom.APP_SUCCESS, {})
+        elif response.status_code == 401:
+            return RetVal(action_result.set_status(phantom.APP_ERROR, u"Unauthorized. Invalid username or password"), None)
 
         return RetVal(action_result.set_status(phantom.APP_ERROR, u"Empty response and no information in the header"), None)
 
@@ -74,6 +78,8 @@ class VenafiConnector(BaseConnector):
             split_lines = error_text.split('\n')
             split_lines = [x.strip() for x in split_lines if x.strip()]
             error_text = u'\n'.join(split_lines)
+            if '404' in error_text:
+                error_text = 'Invalid Venafi API URL'
         except:
             error_text = u"Cannot parse error details"
 
