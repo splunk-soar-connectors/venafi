@@ -286,7 +286,7 @@
                 },
                 "management_type": {
                     "description": "The level of management that Trust Protection Platform applies to the certificate",
-                    "data_type": "numeric",
+                    "data_type": "string",
                     "required": false,
                     "primary": true,
                     "value_list": [
