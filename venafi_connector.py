@@ -198,6 +198,15 @@ class VenafiConnector(BaseConnector):
         headers = self._authorize(action_result)
         uri = '/Certificates/Request'
 
+        subject_alt_names = param.get('subject_alt_names')
+        try:
+            if not subject_alt_names:
+                subject_alt_names = []
+            else:
+                subject_alt_names = json.loads(param.get('subject_alt_names'))
+        except:
+            return action_result.set_status(phantom.APP_ERROR, 'Error occurred while parsing JSON string. Error: {0}'.format(str(e)))
+
         data = {
             "Approvers": param.get('approvers'),
             "CADN": param.get('cadn'),
@@ -214,7 +223,7 @@ class VenafiConnector(BaseConnector):
             "ManagementType": param.get('management_type'),
             "PolicyDN": param['policy_dn'],
             "Subject": param.get('subject'),
-            "SubjectAltNames": json.loads(param.get('subject_alt_names')),
+            "SubjectAltNames": subject_alt_names,
             "ObjectName": param.get('object_name'),
             "Organization": param.get('organization'),
             "OrganizationalUnit": param.get('organizational_unit'),
