@@ -198,24 +198,61 @@ class VenafiConnector(BaseConnector):
         headers = self._authorize(action_result)
         uri = '/Certificates/Request'
 
+        # Handling JSON param parsing
         subject_alt_names = param.get('subject_alt_names')
         try:
             if not subject_alt_names:
                 subject_alt_names = []
             else:
                 subject_alt_names = json.loads(param.get('subject_alt_names'))
-        except:
-            return action_result.set_status(phantom.APP_ERROR, 'Error occurred while parsing JSON string. Error: {0}'.format(str(e)))
+        except Exception as e:
+            return action_result.set_status(phantom.APP_ERROR, 'Error occurred while parsing the subject alt names parameter. Error: {0}'.format(str(e)))
+
+        approvers = param.get('approvers')
+        try:
+            if not approvers:
+                approvers = []
+            else:
+                approvers = json.loads(param.get('approvers'))
+        except Exception as e:
+            return action_result.set_status(phantom.APP_ERROR, 'Error occurred while parsing the approvers parameter. Error: {0}'.format(str(e)))
+
+        ca_specific_attributes = param.get('ca_specific_attributes')
+        try:
+            if not ca_specific_attributes:
+                ca_specific_attributes = []
+            else:
+                ca_specific_attributes = json.loads(param.get('ca_specific_attributes'))
+        except Exception as e:
+            return action_result.set_status(phantom.APP_ERROR, 'Error occurred while parsing the ca specific attributes parameter. Error: {0}'.format(str(e)))
+
+        contacts = param.get('approvers')
+        try:
+            if not contacts:
+                contacts = []
+            else:
+                contacts = json.loads(param.get('contacts'))
+        except Exception as e:
+            return action_result.set_status(phantom.APP_ERROR, 'Error occurred while parsing the contacts parameter. Error: {0}'.format(str(e)))
+
+        devices = param.get('devices')
+        try:
+            if not devices:
+                devices = []
+            else:
+                devices = json.loads(param.get('devices'))
+        except Exception as e:
+            return action_result.set_status(phantom.APP_ERROR, 'Error occurred while parsing the devices parameter. Format should be {}. Error: {0}'.format(str(e)))
 
         data = {
-            "Approvers": param.get('approvers'),
+            "Approvers": approvers,
             "CADN": param.get('cadn'),
-            "CASpecificAttributes": param.get('ca_specific_attributes'),
+            "CASpecificAttributes": ca_specific_attributes,
             "City": param.get('city'),
-            "Contacts": param.get('contacts'),
+            "Contacts": contacts,
             "Country": param.get('country'),
             "CreatedBy": param.get('created_by'),
-            "Devices": param.get('devices'),
+            "Devices": devices,
             "DisableAutomaticRenewal": param.get('disable_automatic_renewal'),
             "EllipticalCurve": param.get('elliptical_curve'),
             "KeyAlgorithm": param.get('key_algorithm'),
