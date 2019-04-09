@@ -187,14 +187,14 @@
                     "description": "The Common Name (CN) field for the certificate. Either the subject or object_name parameter must be filled in",
                     "data_type": "string",
                     "required": false,
-                    "primary": true,
+                    "primary": false,
                     "order": 1
                 },
                 "object_name": {
                     "description": "The Common Name (CN) field for the certificate. Either the subject or object_name parameter must be filled in",
                     "data_type": "string",
                     "required": false,
-                    "primary": true,
+                    "primary": false,
                     "order": 2
                 },
                 "approvers": {
@@ -208,49 +208,49 @@
                     "description": "The Distinguished Name (DN) of the Trust Protection Platform Certificate Authority Template object",
                     "data_type": "string",
                     "required": false,
-                    "primary": true,
+                    "primary": false,
                     "order": 4
                 },
                 "ca_specific_attributes": {
                     "description": "An array of name/value pairs providing any CA attributes to be stored with the Certificate object and submitted to the CA during enrollment",
                     "data_type": "string",
                     "required": false,
-                    "primary": true,
+                    "primary": false,
                     "order": 5
                 },
                 "city": {
                     "description": "Locality/City attribute of Certificate",
                     "data_type": "string",
                     "required": false,
-                    "primary": true,
+                    "primary": false,
                     "order": 6
                 },
                 "contacts": {
                     "description": "An array of one or more identities for users or groups who receive notifications about events pertaining to the object",
                     "data_type": "string",
                     "required": false,
-                    "primary": true,
+                    "primary": false,
                     "order": 7
                 },
                 "created_by": {
                     "description": "The setting to identify the object that initiated enrollment or provisioning changes",
                     "data_type": "string",
                     "required": false,
-                    "primary": true,
+                    "primary": false,
                     "order": 8
                 },
                 "devices": {
                     "description": "An array of devices that require enrollment or provisioning",
                     "data_type": "string",
                     "required": false,
-                    "primary": true,
+                    "primary": false,
                     "order": 9
                 },
                 "disable_automatic_renewal": {
                     "description": "The setting to control whether manual intervention is required for certificate renewal",
                     "data_type": "boolean",
                     "required": true,
-                    "primary": true,
+                    "primary": false,
                     "default": false,
                     "order": 10
                 },
@@ -298,14 +298,14 @@
                     "order": 15
                 },
                 "organization": {
-                    "description": "Organization attribute of Certificate",
+                    "description": "Organization attribute of the certificate",
                     "data_type": "string",
                     "required": false,
                     "primary": true,
                     "order": 16
                 },
                 "organizational_unit": {
-                    "description": "Organizational unit attribute of Certificate",
+                    "description": "Organizational unit attribute of the certificate",
                     "data_type": "string",
                     "required": false,
                     "primary": true,
