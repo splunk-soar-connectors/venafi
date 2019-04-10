@@ -146,9 +146,6 @@ class VenafiConnector(BaseConnector):
 
     def _make_rest_call(self, endpoint, action_result, headers=None, params=None, data=None, method="get", **kwargs):
         # **kwargs can be any additional parameters that requests.request accepts
-
-        config = self.get_config()
-
         resp_json = None
 
         try:
@@ -164,7 +161,6 @@ class VenafiConnector(BaseConnector):
                             url,
                             headers=headers,
                             json=data,
-                            verify=config.get('verify_server_cert', False),
                             params=params)
         except Exception as e:
             return RetVal(action_result.set_status( phantom.APP_ERROR, u"Error Connecting to server. Details: {0}".format(str(e))), resp_json)
