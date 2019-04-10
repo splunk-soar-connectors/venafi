@@ -201,7 +201,7 @@
                     "description": "An array of one or more identities for certificate workflow approvers",
                     "data_type": "string",
                     "required": false,
-                    "primary": true,
+                    "primary": false,
                     "order": 3
                 },
                 "cadn": {
@@ -258,7 +258,7 @@
                     "description": "P256, P384, or P521 encryption for Elliptical Curve Cryptography",
                     "data_type": "string",
                     "required": false,
-                    "primary": true,
+                    "primary": false,
                     "value_list": [
                         "P256",
                         "P384",
@@ -270,7 +270,7 @@
                     "description": "Algorithm for public key of Certificate",
                     "data_type": "string",
                     "required": false,
-                    "primary": true,
+                    "primary": false,
                     "value_list": [
                         "RSA",
                         "ECC"
@@ -281,14 +281,14 @@
                     "description": "The number of bits to allow for key generation",
                     "data_type": "numeric",
                     "required": false,
-                    "primary": true,
+                    "primary": false,
                     "order": 14
                 },
                 "management_type": {
                     "description": "The level of management that Trust Protection Platform applies to the certificate",
                     "data_type": "string",
                     "required": false,
-                    "primary": true,
+                    "primary": false,
                     "value_list": [
                         "Enrollment",
                         "Provisioning",
@@ -301,28 +301,28 @@
                     "description": "Organization attribute of the certificate",
                     "data_type": "string",
                     "required": false,
-                    "primary": true,
+                    "primary": false,
                     "order": 16
                 },
                 "organizational_unit": {
                     "description": "Organizational unit attribute of the certificate",
                     "data_type": "string",
                     "required": false,
-                    "primary": true,
+                    "primary": false,
                     "order": 17
                 },
                 "pkcs10": {
                     "description": "The PKCS10 formatted CSR for the certificate",
                     "data_type": "string",
                     "required": false,
-                    "primary": true,
+                    "primary": false,
                     "order": 18
                 },
                 "reenable": {
                     "description": "Option to renew a previously disabled certificate",
                     "data_type": "boolean",
                     "required": true,
-                    "primary": true,
+                    "primary": false,
                     "default": false,
                     "order": 19
                 },
@@ -330,7 +330,7 @@
                     "description": "Option to control certificate processing",
                     "data_type": "boolean",
                     "required": true,
-                    "primary": true,
+                    "primary": false,
                     "default": false,
                     "order": 20
                 },
@@ -338,14 +338,14 @@
                     "description": "State/Province attribute of Certificate",
                     "data_type": "string",
                     "required": false,
-                    "primary": true,
+                    "primary": false,
                     "order": 21
                 },
                 "subject_alt_names": {
                     "description": "Skip parameter if the policy already specifies SAN Types. Array of subject alternative names (SANS) for the certificate. For each SAN, specify an array element with a Type and a corresponding Name. For example, SubjectAltNames:[ {Type:2, Name:www.example.com}, {Type:7, Name:9.5.45.11} ]. The Type parameter is an integer that represents the kind of SAN which can be 0:OtherName, 1: Email, 2:DNS, 6: URI, or 7:IPAddress. The Name value is the SAN Friendly name that corresponds to the Type parameter",
                     "data_type": "string",
                     "required": false,
-                    "primary": true,
+                    "primary": false,
                     "order": 22
                 }
             },
@@ -540,21 +540,21 @@
                     "description": "Maximum number of certificates to return. Possible values are 1-100",
                     "data_type": "numeric",
                     "required": false,
-                    "primary": true,
+                    "primary": false,
                     "order": 0
                 },
                 "offset": {
                     "description": "Number of results to skip (offset=5 begins results at page five)",
                     "data_type": "numeric",
                     "required": false,
-                    "primary": true,
+                    "primary": false,
                     "order": 1
                 },
                 "country": {
                     "description": "Country attribute of Certificate",
                     "data_type": "string",
                     "required": false,
-                    "primary": true,
+                    "primary": false,
                     "order": 2
                 },
                 "common_name": {
@@ -572,56 +572,56 @@
                     "description": "Algorithm for public key of Certificate",
                     "data_type": "string",
                     "required": false,
-                    "primary": true,
+                    "primary": false,
                     "order": 4
                 },
                 "key_size": {
                     "description": "Public key size of Certificate",
                     "data_type": "numeric",
                     "required": false,
-                    "primary": true,
+                    "primary": false,
                     "order": 5
                 },
                 "key_size_greater": {
                     "description": "Find certificates with a key size greater than the specified value",
                     "data_type": "numeric",
                     "required": false,
-                    "primary": true,
+                    "primary": false,
                     "order": 6
                 },
                 "key_size_less": {
                     "description": "Find certificates with a key size less than the specified value",
                     "data_type": "numeric",
                     "required": false,
-                    "primary": true,
+                    "primary": false,
                     "order": 7
                 },
                 "city": {
                     "description": "Locality/City attribute of Certificate",
                     "data_type": "string",
                     "required": false,
-                    "primary": true,
+                    "primary": false,
                     "order": 8
                 },
                 "organization": {
                     "description": "Organization attribute of Certificate",
                     "data_type": "string",
                     "required": false,
-                    "primary": true,
+                    "primary": false,
                     "order": 9
                 },
                 "organization_unit": {
                     "description": "Organization unit attribute of Certificate",
                     "data_type": "string",
                     "required": false,
-                    "primary": true,
+                    "primary": false,
                     "order": 10
                 },
                 "state": {
                     "description": "State/Province attribute of Certificate",
                     "data_type": "string",
                     "required": false,
-                    "primary": true,
+                    "primary": false,
                     "order": 11
                 },
                 "san_dns": {
@@ -679,14 +679,14 @@
                     "description": "Serial number attribute of Certificate",
                     "data_type": "string",
                     "required": false,
-                    "primary": true,
+                    "primary": false,
                     "order": 17
                 },
                 "signature_algorithm": {
                     "description": "Algorithm used to sign the Certificate",
                     "data_type": "string",
                     "required": false,
-                    "primary": true,
+                    "primary": false,
                     "order": 18
                 },
                 "thumbprint": {
@@ -703,28 +703,28 @@
                     "description": "YYYY-MM-DD or ISO 8601 format YYYY-MM-DDTHH:MM:SS.mmmmmmmZ (Find certificates by the date of issue)",
                     "data_type": "string",
                     "required": false,
-                    "primary": true,
+                    "primary": false,
                     "order": 20
                 },
                 "valid_to": {
                     "description": "YYYY-MM-DD or ISO 8601 format YYYY-MM-DDTHH:MM:SS.mmmmmmmZ (Find certificates by expiration date)",
                     "data_type": "string",
                     "required": false,
-                    "primary": true,
+                    "primary": false,
                     "order": 21
                 },
                 "valid_to_greater": {
                     "description": "YYYY-MM-DD or ISO 8601 format YYYY-MM-DDTHH:MM:SS.mmmmmmmZ (Find certificates that expire after a certain date)",
                     "data_type": "string",
                     "required": false,
-                    "primary": true,
+                    "primary": false,
                     "order": 22
                 },
                 "valid_to_less": {
                     "description": "YYYY-MM-DD or ISO 8601 format YYYY-MM-DDTHH:MM:SS.mmmmmmmZ (Find certificates that expire before a certain date)",
                     "data_type": "string",
                     "required": false,
-                    "primary": true,
+                    "primary": false,
                     "order": 23
                 }
             },
@@ -1029,14 +1029,14 @@
                     "description": "The PKCS10 formatted CSR to use for the renewal",
                     "data_type": "string",
                     "required": false,
-                    "primary": true,
+                    "primary": false,
                     "order": 1
                 },
                 "reenable": {
                     "description": "Option to renew a previously disabled certificate",
                     "data_type": "boolean",
                     "required": true,
-                    "primary": true,
+                    "primary": false,
                     "order": 1
                 }
             },
@@ -1146,7 +1146,7 @@
                     "description": "The reason for revocation of the certificate. 0: None, 1: User key compromised, 2: CA key compromised, 3: User changed affiliation, 4: Certificate superseded, 5: Original use no longer valid",
                     "data_type": "numeric",
                     "required": false,
-                    "primary": true,
+                    "primary": false,
                     "value_list": [
                         "0",
                         "1",
@@ -1161,14 +1161,14 @@
                     "description": "Details about why the certificate is being revoked",
                     "data_type": "string",
                     "required": false,
-                    "primary": true,
+                    "primary": false,
                     "order": 3
                 },
                 "disable": {
                     "description": "The setting to manage the certificate upon revocation. If true, the certificate is disabled and no new certificate may replace it. If false, the certificate is allowed to be replaced by a new certificate",
                     "data_type": "boolean",
                     "required": false,
-                    "primary": true,
+                    "primary": false,
                     "order": 4
                 }
             },
@@ -1269,7 +1269,7 @@
                     "description": "The certificate format for the return data",
                     "data_type": "string",
                     "required": false,
-                    "primary": true,
+                    "primary": false,
                     "value_list": [
                         "Base64",
                         "Base64 (PKCS #8)",
@@ -1285,42 +1285,42 @@
                     "description": "The label or alias to use for Base64, JKS, or PKCS #12 formats. Required for the JKS format",
                     "data_type": "string",
                     "required": false,
-                    "primary": true,
+                    "primary": false,
                     "order": 2
                 },
                 "include_chain": {
                     "description": "When the Format is Base64, PKCS #7, PKCS #12, or JKS, you can include the parent or root chain in the return data",
                     "data_type": "boolean",
                     "required": false,
-                    "primary": true,
+                    "primary": false,
                     "order": 3
                 },
                 "include_private_key": {
                     "description": "When the Format is Base64, PKCS #12, or JKS, you can specify whether to return the private key",
                     "data_type": "boolean",
                     "required": false,
-                    "primary": true,
+                    "primary": false,
                     "order": 4
                 },
                 "keystore_password": {
                     "description": "If the Format is JKS, you must set a keystore password. Use the same requirements as required for the Password parameter",
                     "data_type": "string",
                     "required": false,
-                    "primary": true,
+                    "primary": false,
                     "order": 5
                 },
                 "password": {
                     "description": "If the IncludePrivateKey value is true, you must create a password. Password must be 12 characters and comprised of at least 3 of the following: uppercase alphabetic letters, lowercase alphabetic letters, numeric characters, special characters",
                     "data_type": "string",
                     "required": false,
-                    "primary": true,
+                    "primary": false,
                     "order": 6
                 },
                 "root_first_order": {
                     "description": "The order of the certificate chain to trust",
                     "data_type": "boolean",
                     "required": false,
-                    "primary": true,
+                    "primary": false,
                     "order": 7
                 }
             },
