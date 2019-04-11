@@ -282,7 +282,7 @@
                     "data_type": "numeric",
                     "required": false,
                     "primary": false,
-                    "order": 14
+                    "order": 13
                 },
                 "management_type": {
                     "description": "The level of management that Trust Protection Platform applies to the certificate",
@@ -295,28 +295,28 @@
                         "Monitoring",
                         "Unassigned"
                     ],
-                    "order": 15
+                    "order": 14
                 },
                 "organization": {
                     "description": "Organization attribute of the certificate",
                     "data_type": "string",
                     "required": false,
                     "primary": false,
-                    "order": 16
+                    "order": 15
                 },
                 "organizational_unit": {
                     "description": "Organizational unit attribute of the certificate",
                     "data_type": "string",
                     "required": false,
                     "primary": false,
-                    "order": 17
+                    "order": 16
                 },
                 "pkcs10": {
                     "description": "The PKCS10 formatted CSR for the certificate",
                     "data_type": "string",
                     "required": false,
                     "primary": false,
-                    "order": 18
+                    "order": 17
                 },
                 "reenable": {
                     "description": "Option to renew a previously disabled certificate",
@@ -324,7 +324,7 @@
                     "required": true,
                     "primary": false,
                     "default": false,
-                    "order": 19
+                    "order": 18
                 },
                 "set_work_to_do": {
                     "description": "Option to control certificate processing",
@@ -332,21 +332,21 @@
                     "required": true,
                     "primary": false,
                     "default": false,
-                    "order": 20
+                    "order": 19
                 },
                 "state": {
                     "description": "State/Province attribute of Certificate",
                     "data_type": "string",
                     "required": false,
                     "primary": false,
-                    "order": 21
+                    "order": 20
                 },
                 "subject_alt_names": {
                     "description": "Skip parameter if the policy already specifies SAN Types. Array of subject alternative names (SANS) for the certificate. For each SAN, specify an array element with a Type and a corresponding Name. For example, SubjectAltNames:[ {Type:2, Name:www.example.com}, {Type:7, Name:9.5.45.11} ]. The Type parameter is an integer that represents the kind of SAN which can be 0:OtherName, 1: Email, 2:DNS, 6: URI, or 7:IPAddress. The Name value is the SAN Friendly name that corresponds to the Type parameter",
                     "data_type": "string",
                     "required": false,
                     "primary": false,
-                    "order": 22
+                    "order": 21
                 }
             },
             "output": [
@@ -531,7 +531,7 @@
         {
             "action": "list certificates",
             "identifier": "list_certificates",
-            "description": "returns a list of certificates in Venafi",
+            "description": "Returns a list of certificates in Venafi",
             "verbose": "Returns certificate details and total number of certificates that match specified search filters",
             "type": "investigate",
             "read_only": true,
@@ -1010,8 +1010,8 @@
         {
             "action": "renew certificate",
             "identifier": "renew_certificate",
-            "description": "requests immediate renewal for an existing certificate in Venafi",
-            "verbose": "a renewable certificate cannot be currently processing, in error, or contain a 'Monitoring' Management Type",
+            "description": "Requests immediate renewal for an existing certificate in Venafi",
+            "verbose": "A renewable certificate cannot be currently processing, in error, or contain a 'Monitoring' Management Type",
             "type": "generic",
             "read_only": false,
             "parameters": {
@@ -1037,7 +1037,7 @@
                     "data_type": "boolean",
                     "required": true,
                     "primary": false,
-                    "order": 1
+                    "order": 2
                 }
             },
             "output": [
