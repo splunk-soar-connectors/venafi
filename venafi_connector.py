@@ -3,7 +3,7 @@
 #
 # SPLUNK CONFIDENTIAL - Use or disclosure of this material in whole or in part
 # without a valid written license from Splunk Inc. is PROHIBITED.
-
+# TODO: line 499 and line 176 ssl verify is false
 # Phantom App imports
 import phantom.app as phantom
 from phantom.base_connector import BaseConnector
@@ -38,35 +38,37 @@ class VenafiConnector(BaseConnector):
         # Do note that the app json defines the asset config, so please
         # modify this as you deem fit.
         self._base_url = None
+        self.access_token_retry = True  # variable to make sure access token is fetched only once on failure
 
     def _authorize(self, action_result):
         headers = {'Content-Type': 'application/json'}
-        
-        if not hasattr(self, "_auth_response") or self._auth_response['expires'] < time.time():
-            uri = '/vedauth/authorize/oauth'
-            # current set of actions supported byt this app only requires these scopes.
-            # scopes will need to be changed as the requirements of actions supported by app
-            body = {
-                "username": self._username,
-                "password": self._password,
-                "client_id": self._client_id,
-                "scope": "certificate:discover,delete,manage,revoke;configuration"
-            }
-        else:
-            uri = '/vedauth/Authorize/Token'
-            body = {
-                "client_id": self._client_id,
-                "refresh_token": self._auth_response['refresh_token']
-            }
 
-        ret_val, response = self._make_rest_call(uri, action_result, data=body, headers=headers, method='post')
-        self._auth_response = response
-        try:
-            access_token = response['access_token']
+        # if there is no access token or old one is expired
+        if self._state.get('access_token') is None or self._state['access_token']['expires'] <= time.time():
+
+            if self._state.get('access_token') is None:
+                uri = '/vedauth/authorize/oauth'
+                # current set of actions supported byt this app only requires these scopes.
+                # scopes will need to be changed as the requirements of actions supported by app
+                body = {
+                    "username": self._username,
+                    "password": self._password,
+                    "client_id": self._client_id,
+                    "scope": "certificate:discover,delete,manage,revoke;configuration"
+                }
+
+            elif self._state['access_token']['expires'] <= time.time():
+                uri = '/vedauth/Authorize/Token'
+                body = {
+                    "client_id": self._client_id,
+                    "refresh_token": self._state['access_token']['refresh_token']
+                }
+
+            ret_val, response = self._make_rest_call(uri, action_result, data=body, headers=headers, method='post')
+            self._state['access_token'] = response
             self.save_progress('Successfully generated Access Token')
-        except Exception:
-            return False
-        headers = {'Content-Type': 'application/json', 'Authorization': 'Bearer {}'.format(access_token)}
+
+        headers = {'Content-Type': 'application/json', 'Authorization': 'Bearer {}'.format(self._state['access_token']['access_token'])}
         return headers
 
     def _process_empty_reponse(self, response, action_result):
@@ -103,7 +105,6 @@ class VenafiConnector(BaseConnector):
         return RetVal(action_result.set_status(phantom.APP_ERROR, message), None)
 
     def _process_json_response(self, r, action_result):
-
         # Try a json parse
         try:
             resp_json = r.json()
@@ -114,14 +115,12 @@ class VenafiConnector(BaseConnector):
         if 200 <= r.status_code < 399:
             return RetVal(phantom.APP_SUCCESS, resp_json)
 
-        if 'ErrorDetails' in resp_json:
-            message = resp_json['ErrorDetails']
-        elif 'Error' in resp_json:
-            message = resp_json['Error']
+        if 'error_description' in resp_json and 'error' in resp_json:
+            message = resp_json['error_description']
         # You should process the error returned in the json
         else:
             message = "Error from server. Status Code: {0} Data from server: {1}".format(
-                    r.status_code, r.text.replace('{', '{{').replace('}', '}}'))
+                    r.status_code, r.text.encode('ascii').decode('unicode-escape').replace('{', '{{').replace('}', '}}'))
 
         return RetVal(action_result.set_status(phantom.APP_ERROR, message), None)
 
@@ -175,9 +174,15 @@ class VenafiConnector(BaseConnector):
                             json=data,
                             params=params,
                             verify=False)
+            # makes rest call again with new access token in case old one gave 401 error
+            if r.status_code == 401 and self.access_token_retry:
+                self._state.pop('access_token')
+                headers = self._authorize(action_result)
+                self.access_token_retry = False  # make it to false to avoid getting access token after one time (prevents recursive loop)
+                return self._make_rest_call(endpoint, action_result, headers, params, data, method, **kwargs)
+
         except Exception as e:
             return RetVal(action_result.set_status( phantom.APP_ERROR, "Error Connecting to server. Details: {0}".format(str(e))), resp_json)
-
         return self._process_response(r, action_result)
 
     def _handle_test_connectivity(self, param):
@@ -186,11 +191,10 @@ class VenafiConnector(BaseConnector):
 
         self.save_progress("Connecting to endpoint")
         # generate api key
-        uri = '/vedauth/Authorize/Verify'
         headers = self._authorize(action_result)
+        uri = '/vedauth/Authorize/Verify'
         # make rest call
         ret_val, response = self._make_rest_call(uri, action_result, params=None, headers=headers, method="get")
-
         if (phantom.is_fail(ret_val)):
             self.save_progress("Test Connectivity Failed.")
             return action_result.get_status()
@@ -205,7 +209,7 @@ class VenafiConnector(BaseConnector):
         action_result = self.add_action_result(ActionResult(dict(param)))
 
         headers = self._authorize(action_result)
-        uri = '/Certificates/Request'
+        uri = '/vedsdk/Certificates/Request'
 
         # Handling JSON param parsing
         try:
@@ -276,7 +280,7 @@ class VenafiConnector(BaseConnector):
 
         action_result = self.add_action_result(ActionResult(dict(param)))
         headers = self._authorize(action_result)
-        uri = '/Config/FindObjectsOfClass'
+        uri = '/vedsdk/Config/FindObjectsOfClass'
 
         data = {
             "Class": 'Policy',
@@ -310,7 +314,7 @@ class VenafiConnector(BaseConnector):
 
         action_result = self.add_action_result(ActionResult(dict(param)))
         headers = self._authorize(action_result)
-        uri = '/Certificates'
+        uri = '/vedsdk/certificates'
 
         # Optional Certificate filter attributes
         params = {}
@@ -394,7 +398,7 @@ class VenafiConnector(BaseConnector):
 
         action_result = self.add_action_result(ActionResult(dict(param)))
         headers = self._authorize(action_result)
-        uri = '/Certificates/Renew'
+        uri = '/vedsdk/Certificates/Renew'
 
         data = {
             "CertificateDN": param['certificate_dn'],
@@ -420,7 +424,7 @@ class VenafiConnector(BaseConnector):
 
         action_result = self.add_action_result(ActionResult(dict(param)))
         headers = self._authorize(action_result)
-        uri = '/Certificates/Revoke'
+        uri = '/vedsdk/Certificates/Revoke'
 
         if not(param.get('certificate_dn') or param.get('thumbprint')):
             return RetVal(action_result.set_status(phantom.APP_ERROR, "Error: Must pass in either CertificateDN or Thumbprint parameter"), None)
@@ -451,7 +455,7 @@ class VenafiConnector(BaseConnector):
 
         action_result = self.add_action_result(ActionResult(dict(param)))
         headers = self._authorize(action_result)
-        uri = '/Certificates/Retrieve'
+        uri = '/vedsdk/Certificates/Retrieve'
 
         # Optional Certificate filter attributes
         params = {}
@@ -487,12 +491,12 @@ class VenafiConnector(BaseConnector):
         """ Download a file and add it to the vault """
 
         url = self._base_url + endpoint
-
         try:
             r = requests.get(
                 url,
                 headers=headers,
                 params=params,
+                verify = False
             )
 
         except Exception as e:
@@ -586,7 +590,6 @@ class VenafiConnector(BaseConnector):
         self._username = config['username'].strip()
         self._password = config['password'].strip()
         self._client_id = config['client_id'].strip()
-
         return phantom.APP_SUCCESS
 
     def finalize(self):
