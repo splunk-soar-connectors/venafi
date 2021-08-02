@@ -242,19 +242,26 @@
                     "primary": false,
                     "order": 7
                 },
+                "country": {
+                    "description": "The Country field for the certificate Subject DN",
+                    "data_type": "string",
+                    "required": false,
+                    "primary": false,
+                    "order": 8
+                },
                 "created_by": {
                     "description": "The setting to identify the object that initiated enrollment or provisioning changes",
                     "data_type": "string",
                     "required": false,
                     "primary": false,
-                    "order": 8
+                    "order": 9
                 },
                 "devices": {
                     "description": "An array of devices that require enrollment or provisioning",
                     "data_type": "string",
                     "required": false,
                     "primary": false,
-                    "order": 9
+                    "order": 10
                 },
                 "disable_automatic_renewal": {
                     "description": "The setting to control whether manual intervention is required for certificate renewal",
@@ -262,7 +269,7 @@
                     "required": true,
                     "primary": false,
                     "default": false,
-                    "order": 10
+                    "order": 11
                 },
                 "elliptical_curve": {
                     "description": "P256, P384, or P521 encryption for Elliptical Curve Cryptography",
@@ -274,7 +281,7 @@
                         "P384",
                         "P521"
                     ],
-                    "order": 11
+                    "order": 12
                 },
                 "key_algorithm": {
                     "description": "Algorithm for public key of Certificate",
@@ -285,14 +292,14 @@
                         "RSA",
                         "ECC"
                     ],
-                    "order": 12
+                    "order": 13
                 },
                 "key_bit_size": {
                     "description": "The number of bits to allow for key generation",
                     "data_type": "numeric",
                     "required": false,
                     "primary": false,
-                    "order": 13
+                    "order": 14
                 },
                 "management_type": {
                     "description": "The level of management that Trust Protection Platform applies to the certificate",
@@ -305,28 +312,28 @@
                         "Monitoring",
                         "Unassigned"
                     ],
-                    "order": 14
+                    "order": 15
                 },
                 "organization": {
                     "description": "Organization attribute of the certificate",
                     "data_type": "string",
                     "required": false,
                     "primary": false,
-                    "order": 15
+                    "order": 16
                 },
                 "organizational_unit": {
                     "description": "Organizational unit attribute of the certificate",
                     "data_type": "string",
                     "required": false,
                     "primary": false,
-                    "order": 16
+                    "order": 17
                 },
                 "pkcs10": {
                     "description": "The PKCS10 formatted CSR for the certificate",
                     "data_type": "string",
                     "required": false,
                     "primary": false,
-                    "order": 17
+                    "order": 18
                 },
                 "reenable": {
                     "description": "Option to renew a previously disabled certificate",
@@ -334,7 +341,7 @@
                     "required": true,
                     "primary": false,
                     "default": false,
-                    "order": 18
+                    "order": 19
                 },
                 "set_work_to_do": {
                     "description": "Option to control certificate processing",
@@ -342,21 +349,21 @@
                     "required": true,
                     "primary": false,
                     "default": false,
-                    "order": 19
+                    "order": 20
                 },
                 "state": {
                     "description": "State/Province attribute of Certificate",
                     "data_type": "string",
                     "required": false,
                     "primary": false,
-                    "order": 20
+                    "order": 21
                 },
                 "subject_alt_names": {
                     "description": "Skip parameter if the policy already specifies SAN Types. Array of subject alternative names (SANS) for the certificate. For each SAN, specify an array element with a Type and a corresponding Name. For example, SubjectAltNames:[ {Type:2, Name:www.example.com}, {Type:7, Name:9.5.45.11} ]. The Type parameter is an integer that represents the kind of SAN which can be 0:OtherName, 1: Email, 2:DNS, 6: URI, or 7:IPAddress. The Name value is the SAN Friendly name that corresponds to the Type parameter",
                     "data_type": "string",
                     "required": false,
                     "primary": false,
-                    "order": 21
+                    "order": 22
                 }
             },
             "output": [
@@ -1285,8 +1292,8 @@
                         "Base64 (PKCS #8)",
                         "DER",
                         "JKS",
-                        "PKCS #7",
-                        "PKCS #12"
+                        "PKCS#7",
+                        "PKCS#12"
                     ],
                     "default": "Base64",
                     "order": 1

@@ -3,7 +3,6 @@
 #
 # SPLUNK CONFIDENTIAL - Use or disclosure of this material in whole or in part
 # without a valid written license from Splunk Inc. is PROHIBITED.
-# TODO: line 499 and line 176 ssl verify is false
 # Phantom App imports
 import phantom.app as phantom
 from phantom.base_connector import BaseConnector
@@ -38,7 +37,8 @@ class VenafiConnector(BaseConnector):
         # Do note that the app json defines the asset config, so please
         # modify this as you deem fit.
         self._base_url = None
-        self.access_token_retry = True  # variable to make sure access token is fetched only once on failure
+        # variable to make sure access token is fetched only once on failure
+        self.access_token_retry = True
 
     def _authorize(self, action_result):
         headers = {'Content-Type': 'application/json'}
@@ -64,11 +64,15 @@ class VenafiConnector(BaseConnector):
                     "refresh_token": self._state['access_token']['refresh_token']
                 }
 
-            ret_val, response = self._make_rest_call(uri, action_result, data=body, headers=headers, method='post')
+            ret_val, response = self._make_rest_call(uri, action_result, data=body,
+                                                    headers=headers, method='post')
             self._state['access_token'] = response
             self.save_progress('Successfully generated Access Token')
 
-        headers = {'Content-Type': 'application/json', 'Authorization': 'Bearer {}'.format(self._state['access_token']['access_token'])}
+        headers = {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer {}'.format(self._state['access_token']['access_token'])
+        }
         return headers
 
     def _process_empty_reponse(self, response, action_result):
@@ -94,11 +98,11 @@ class VenafiConnector(BaseConnector):
             error_text = '\n'.join(split_lines)
             if '404' in error_text:
                 error_text = 'Invalid Venafi API URL'
-        except:
+        except Exception as ex:
+            self.debug_print("Exception in _process_html_response: {}".format(ex))
             error_text = "Cannot parse error details"
 
-        message = "Status Code: {0}. Data from server:\n{1}\n".format(status_code,
-                error_text)
+        message = "Status Code: {0}. Data from server:\n{1}\n".format(status_code, error_text)
 
         message = message.replace('{', '{{').replace('}', '}}')
 
@@ -108,8 +112,9 @@ class VenafiConnector(BaseConnector):
         # Try a json parse
         try:
             resp_json = r.json()
-        except Exception as e:
-            return RetVal(action_result.set_status(phantom.APP_ERROR, "Unable to parse JSON response. Error: {0}".format(str(e))), None)
+        except Exception as ex:
+            self.debug_print('Exception in _download_file_to_vault: {}'.format(ex))
+            return RetVal(action_result.set_status(phantom.APP_ERROR, "Unable to parse JSON response. Error: {0}".format(str(ex))), None)
 
         # Please specify the status codes here
         if 200 <= r.status_code < 399:
@@ -120,7 +125,8 @@ class VenafiConnector(BaseConnector):
         # You should process the error returned in the json
         else:
             message = "Error from server. Status Code: {0} Data from server: {1}".format(
-                    r.status_code, r.text.encode('ascii').decode('unicode-escape').replace('{', '{{').replace('}', '}}'))
+                    r.status_code, r.text.encode('ascii', 'backslashreplace').
+                    decode('unicode-escape').replace('{', '{{').replace('}', '}}'))
 
         return RetVal(action_result.set_status(phantom.APP_ERROR, message), None)
 
@@ -181,8 +187,9 @@ class VenafiConnector(BaseConnector):
                 self.access_token_retry = False  # make it to false to avoid getting access token after one time (prevents recursive loop)
                 return self._make_rest_call(endpoint, action_result, headers, params, data, method, **kwargs)
 
-        except Exception as e:
-            return RetVal(action_result.set_status( phantom.APP_ERROR, "Error Connecting to server. Details: {0}".format(str(e))), resp_json)
+        except Exception as ex:
+            self.debug_print('Exception in _make_rest_call: {}'.format(ex))
+            return RetVal(action_result.set_status(phantom.APP_ERROR, "Error Connecting to server. Details: {0}".format(str(ex))), resp_json)
         return self._process_response(r, action_result)
 
     def _handle_test_connectivity(self, param):
@@ -195,7 +202,7 @@ class VenafiConnector(BaseConnector):
         uri = '/vedauth/Authorize/Verify'
         # make rest call
         ret_val, response = self._make_rest_call(uri, action_result, params=None, headers=headers, method="get")
-        if (phantom.is_fail(ret_val)):
+        if phantom.is_fail(ret_val):
             self.save_progress("Test Connectivity Failed.")
             return action_result.get_status()
 
@@ -264,7 +271,7 @@ class VenafiConnector(BaseConnector):
         }
         ret_val, response = self._make_rest_call(uri, action_result, headers=headers, data=data, method="post")
 
-        if (phantom.is_fail(ret_val)):
+        if phantom.is_fail(ret_val):
             return ret_val
 
         action_result.add_data(response)
@@ -290,7 +297,7 @@ class VenafiConnector(BaseConnector):
 
         ret_val, response = self._make_rest_call(uri, action_result, headers=headers, method="post", data=data)
 
-        if (phantom.is_fail(ret_val)):
+        if phantom.is_fail(ret_val):
             return ret_val
 
         for policy in response['Objects']:
@@ -308,7 +315,7 @@ class VenafiConnector(BaseConnector):
         else:
             return value
 
-    def _handle_list_certificates(self, param):
+    def _handle_list_certificates(self, param):  # noqa: C901
 
         self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
 
@@ -381,7 +388,7 @@ class VenafiConnector(BaseConnector):
 
         ret_val, response = self._make_rest_call(uri, action_result, params=params, headers=headers, method="get")
 
-        if (phantom.is_fail(ret_val)):
+        if phantom.is_fail(ret_val):
             return ret_val
 
         for certificate in response['Certificates']:
@@ -408,7 +415,7 @@ class VenafiConnector(BaseConnector):
 
         ret_val, response = self._make_rest_call(uri, action_result, headers=headers, method="post", data=data)
 
-        if (phantom.is_fail(ret_val)):
+        if phantom.is_fail(ret_val):
             return ret_val
 
         action_result.add_data(response)
@@ -439,7 +446,7 @@ class VenafiConnector(BaseConnector):
 
         ret_val, response = self._make_rest_call(uri, action_result, headers=headers, method="post", data=data)
 
-        if (phantom.is_fail(ret_val)):
+        if phantom.is_fail(ret_val):
             return ret_val
 
         action_result.add_data(response)
@@ -479,7 +486,7 @@ class VenafiConnector(BaseConnector):
 
         ret_val = self._download_file_to_vault(action_result, uri, headers=headers, params=params)
 
-        if (phantom.is_fail(ret_val)):
+        if phantom.is_fail(ret_val):
             return ret_val
 
         summary = action_result.update_summary({})
@@ -496,11 +503,12 @@ class VenafiConnector(BaseConnector):
                 url,
                 headers=headers,
                 params=params,
-                verify = False
+                verify=False
             )
 
-        except Exception as e:
-            return action_result.set_status(phantom.APP_ERROR, "{}".format(str(e)))
+        except Exception as ex:
+            self.debug_print('Exception in _download_file_to_vault: {}'.format(ex))
+            return action_result.set_status(phantom.APP_ERROR, "{}".format(str(ex)))
 
         # If file content length is 0, meaning the file is empty, then fail with the reason
         if not int(r.headers.get('Content-Length')):
@@ -618,16 +626,16 @@ if __name__ == '__main__':
     username = args.username
     password = args.password
 
-    if (username is not None and password is None):
+    if username is not None and password is None:
 
         # User specified a username but not a password, so ask
         import getpass
         password = getpass.getpass("Password: ")
 
-    if (username and password):
+    if username and password:
         login_url = BaseConnector._get_phantom_base_url() + "login"
         try:
-            print ("Accessing the Login page")
+            print("Accessing the Login page")
             r = requests.get(login_url, verify=False)
             csrftoken = r.cookies['csrftoken']
 
@@ -655,7 +663,7 @@ if __name__ == '__main__':
         connector = VenafiConnector()
         connector.print_progress_message = True
 
-        if (session_id is not None):
+        if session_id is not None:
             in_json['user_session_token'] = session_id
             connector._set_csrf_info(csrftoken, headers['Referer'])
 
