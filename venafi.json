@@ -18,7 +18,7 @@
     "app_wizard_version": "1.0.0",
     "python_version": "3",
     "latest_tested_version": [
-        "TODO"
+        "Trust Protection Platform version 21.1, Tested on 3rd Aug 2021"
     ],
     "configuration": {
         "base_url": {
@@ -333,23 +333,38 @@
                 },
                 {
                     "data_path": "action_result.parameter.approvers",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "[{\"PrefixedUniversal\":\"local:tppadmin\"}]"
+                    ]
                 },
                 {
                     "data_path": "action_result.parameter.ca_specific_attributes",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "[{\"Adaptable CA\":\"Validity Period\"}]"
+                    ]
                 },
                 {
                     "data_path": "action_result.parameter.cadn",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "\\VED\\Policy\\Partner Dev\\TLS\\Certificates\\Testing\\tpp.venafidemo.com"
+                    ]
                 },
                 {
                     "data_path": "action_result.parameter.city",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "London"
+                    ]
                 },
                 {
                     "data_path": "action_result.parameter.contacts",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "[{\"PrefixedUniversal\":\"local:tppadmin\"}]"
+                    ]
                 },
                 {
                     "data_path": "action_result.parameter.country",
@@ -360,7 +375,10 @@
                 },
                 {
                     "data_path": "action_result.parameter.created_by",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "admin"
+                    ]
                 },
                 {
                     "data_path": "action_result.parameter.devices",
@@ -380,22 +398,31 @@
                 },
                 {
                     "data_path": "action_result.parameter.elliptical_curve",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "P256"
+                    ]
                 },
                 {
                     "data_path": "action_result.parameter.key_algorithm",
                     "data_type": "string",
                     "example_values": [
-                        "sha256RSA"
+                        "RSA"
                     ]
                 },
                 {
                     "data_path": "action_result.parameter.key_bit_size",
-                    "data_type": "string"
+                    "data_type": "numeric",
+                    "example_values": [
+                        2048
+                    ]
                 },
                 {
                     "data_path": "action_result.parameter.management_type",
-                    "data_type": "numeric"
+                    "data_type": "string",
+                    "example_values": [
+                        "Monitoring"
+                    ]
                 },
                 {
                     "data_path": "action_result.parameter.object_name",
@@ -406,11 +433,17 @@
                 },
                 {
                     "data_path": "action_result.parameter.organization",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "Venafi, Inc."
+                    ]
                 },
                 {
                     "data_path": "action_result.parameter.organizational_unit",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "Sales"
+                    ]
                 },
                 {
                     "data_path": "action_result.parameter.pkcs10",
@@ -444,7 +477,10 @@
                 },
                 {
                     "data_path": "action_result.parameter.state",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "Ohio"
+                    ]
                 },
                 {
                     "data_path": "action_result.parameter.subject",
@@ -455,7 +491,10 @@
                 },
                 {
                     "data_path": "action_result.parameter.subject_alt_names",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "[{\"TypeName\":\"2\", \"Name\":\"www.example.com\"}, {\"TypeName\":\"7\", \"Name\":\"9.5.45.11\"}]"
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.CertificateDN",
@@ -682,7 +721,10 @@
                 },
                 {
                     "data_path": "action_result.parameter.city",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "London"
+                    ]
                 },
                 {
                     "data_path": "action_result.parameter.common_name",
@@ -690,27 +732,45 @@
                     "contains": [
                         "domain",
                         "url"
+                    ],
+                    "example_values": [
+                        "tpp.venafidemo.com"
                     ]
                 },
                 {
                     "data_path": "action_result.parameter.country",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "US"
+                    ]
                 },
                 {
                     "data_path": "action_result.parameter.key_algorithm",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "RSA"
+                    ]
                 },
                 {
                     "data_path": "action_result.parameter.key_size",
-                    "data_type": "numeric"
+                    "data_type": "numeric",
+                    "example_values": [
+                        2048
+                    ]
                 },
                 {
                     "data_path": "action_result.parameter.key_size_greater",
-                    "data_type": "numeric"
+                    "data_type": "numeric",
+                    "example_values": [
+                        2048
+                    ]
                 },
                 {
                     "data_path": "action_result.parameter.key_size_less",
-                    "data_type": "numeric"
+                    "data_type": "numeric",
+                    "example_values": [
+                        2048
+                    ]
                 },
                 {
                     "data_path": "action_result.parameter.limit",
@@ -728,11 +788,17 @@
                 },
                 {
                     "data_path": "action_result.parameter.organization",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "Venafi, Inc."
+                    ]
                 },
                 {
                     "data_path": "action_result.parameter.organization_unit",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "Sales"
+                    ]
                 },
                 {
                     "data_path": "action_result.parameter.san_dns",
@@ -740,6 +806,9 @@
                     "contains": [
                         "domain",
                         "url"
+                    ],
+                    "example_values": [
+                        "venafidemo.com"
                     ]
                 },
                 {
@@ -747,6 +816,9 @@
                     "data_type": "string",
                     "contains": [
                         "email"
+                    ],
+                    "example_values": [
+                        "admin@venafidemo.com"
                     ]
                 },
                 {
@@ -754,6 +826,9 @@
                     "data_type": "string",
                     "contains": [
                         "ip"
+                    ],
+                    "example_values": [
+                        "8.8.8.8"
                     ]
                 },
                 {
@@ -761,6 +836,9 @@
                     "data_type": "string",
                     "contains": [
                         "email"
+                    ],
+                    "example_values": [
+                        "admin@venafidemo.com"
                     ]
                 },
                 {
@@ -768,19 +846,31 @@
                     "data_type": "string",
                     "contains": [
                         "url"
+                    ],
+                    "example_values": [
+                        "https://www.venafi.com"
                     ]
                 },
                 {
                     "data_path": "action_result.parameter.serial",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "2F0000009D4E9635EFF0E758CB00000000009D"
+                    ]
                 },
                 {
                     "data_path": "action_result.parameter.signature_algorithm",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "sha256RSA"
+                    ]
                 },
                 {
                     "data_path": "action_result.parameter.state",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "Ohio"
+                    ]
                 },
                 {
                     "data_path": "action_result.parameter.thumbprint",
@@ -791,23 +881,38 @@
                 },
                 {
                     "data_path": "action_result.parameter.valid_from",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "2020-02-28"
+                    ]
                 },
                 {
                     "data_path": "action_result.parameter.valid_to",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "2019-01-31"
+                    ]
                 },
                 {
                     "data_path": "action_result.parameter.valid_to_greater",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "2021-04-31"
+                    ]
                 },
                 {
                     "data_path": "action_result.parameter.valid_to_less",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "2020-02-23"
+                    ]
                 },
                 {
                     "data_path": "action_result.parameter.valid_to_less",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "2020-03-16"
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.CreatedOn",
@@ -1157,6 +1262,9 @@
                     "data_type": "string",
                     "contains": [
                         "sha1"
+                    ],
+                    "example_values": [
+                        "648CCDA4F588CFC22DB0F407A8A85D79B088F0AA"
                     ]
                 },
                 {
@@ -1164,8 +1272,33 @@
                     "data_type": "string"
                 },
                 {
+                    "data_path": "action_result.data.*.Requested",
+                    "data_type": "boolean",
+                    "example_value": true
+                },
+                {
+                    "data_path": "action_result.data.*.Revoked",
+                    "data_type": "boolean",
+                    "example_value": true
+                },
+                {
+                    "data_path": "action_result.data.*.Success",
+                    "data_type": "boolean",
+                    "example_value": true
+                },
+                {
+                    "data_path": "action_result.data.*.Warning",
+                    "data_type": "string",
+                    "example_value": "Revocation is already completed. The certificate \"\\VED\\Policy\\Partner Dev\\TLS\\Certificates\\Testing\\testfriendlyname2\" revocation was requested by another request or process."
+                },
+                {
                     "data_path": "action_result.summary",
                     "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.summary.status",
+                    "data_type": "string",
+                    "example_value": "Successfully revoked certificate"
                 },
                 {
                     "data_path": "action_result.message",
@@ -1286,7 +1419,10 @@
                 },
                 {
                     "data_path": "action_result.parameter.friendly_name",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "tpp.venafidemo.com"
+                    ]
                 },
                 {
                     "data_path": "action_result.parameter.include_chain",

@@ -178,8 +178,7 @@ class VenafiConnector(BaseConnector):
                             url,
                             headers=headers,
                             json=data,
-                            params=params,
-                            verify=False)
+                            params=params)
             # makes rest call again with new access token in case old one gave 401 error
             if r.status_code == 401 and self.access_token_retry:
                 self._state.pop('access_token')
@@ -492,9 +491,7 @@ class VenafiConnector(BaseConnector):
             r = requests.get(
                 url,
                 headers=headers,
-                params=params,
-                verify=False
-            )
+                params=params)
 
         except Exception as ex:
             self.debug_print('Exception in _download_file_to_vault: {}'.format(ex))
@@ -626,7 +623,7 @@ if __name__ == '__main__':
         login_url = BaseConnector._get_phantom_base_url() + "login"
         try:
             print("Accessing the Login page")
-            r = requests.get(login_url, verify=False)
+            r = requests.get(login_url, verify=True)
             csrftoken = r.cookies['csrftoken']
 
             data = dict()
@@ -639,7 +636,7 @@ if __name__ == '__main__':
             headers['Referer'] = login_url
 
             print("Logging into Platform to get the session id")
-            r2 = requests.post(login_url, verify=False, data=data, headers=headers)
+            r2 = requests.post(login_url, verify=True, data=data, headers=headers)
             session_id = r2.cookies['sessionid']
         except Exception as e:
             print("Unable to get session id from the platfrom. Error: " + str(e))
