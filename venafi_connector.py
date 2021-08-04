@@ -321,12 +321,12 @@ class VenafiConnector(BaseConnector):
         if 'limit' in param:
             limit = param.get('limit')
             if type(limit) != int or int(limit) <= 0:
-                return action_result.set_status(phantom.APP_ERROR, "Limit value must be an integer greater than 0")
+                return action_result.set_status(phantom.APP_ERROR, "Please provide a non-zero positive integer in the limit")
             params['limit'] = limit
         if 'offset' in param:
             offset = param.get('offset')
             if type(offset) != int or int(offset) < 0:
-                return action_result.set_status(phantom.APP_ERROR, "Offset value must be an integer greater than 0")
+                return action_result.set_status(phantom.APP_ERROR, "Please provide a zero or positive integer in the offset")
             params['offset'] = offset
         if 'country' in param:
             params['C'] = param['country']
@@ -479,7 +479,7 @@ class VenafiConnector(BaseConnector):
             return ret_val
 
         summary = action_result.update_summary({})
-        summary['status'] = "Successfully retrieved certificate and downloaded it to vault"
+        summary['status'] = "Successfully retrieved certificate and added to the vault"
 
         return action_result.set_status(phantom.APP_SUCCESS)
 
@@ -507,7 +507,7 @@ class VenafiConnector(BaseConnector):
             try:
                 vault_ret = Vault.create_attachment(r.content, self.get_container_id(), file_name=file_name)
             except Exception as e:
-                return action_result.set_status(phantom.APP_ERROR, "Could not add file to vault: {0}".format(e))
+                return action_result.set_status(phantom.APP_ERROR, "Could not add file to the vault: {0}".format(e))
         else:
             guid = uuid.uuid4()
             tmp_dir = "/vault/tmp/{}".format(guid)
@@ -534,9 +534,9 @@ class VenafiConnector(BaseConnector):
                             phantom.APP_JSON_NAME: file_name,
                             phantom.APP_JSON_SIZE: vault_ret.get(phantom.APP_JSON_SIZE)
                         })
-            action_result.set_status(phantom.APP_SUCCESS, "Successfully added file to vault")
+            action_result.set_status(phantom.APP_SUCCESS, "Successfully added file to the vault")
         else:
-            action_result.set_status(phantom.APP_ERROR, "Error adding file to vault")
+            action_result.set_status(phantom.APP_ERROR, "Error adding file to the vault")
 
         return action_result.get_status()
 

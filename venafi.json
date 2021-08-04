@@ -89,7 +89,7 @@
                     "data_path": "action_result.data.*.DN",
                     "data_type": "string",
                     "example_values": [
-                        "\\VED\\Policy\\Certificates\\Splunk"
+                        "\\VED\\Policy\\Certificates\\test"
                     ],
                     "column_name": "Policy Dn",
                     "column_order": 1,
@@ -115,7 +115,7 @@
                     "data_path": "action_result.data.*.Name",
                     "data_type": "string",
                     "example_values": [
-                        "Splunk"
+                        "Test"
                     ],
                     "column_name": "Policy",
                     "column_order": 0
@@ -317,7 +317,7 @@
                     "order": 21
                 },
                 "subject_alt_names": {
-                    "description": "Skip parameter if the policy already specifies SAN Types. Array of subject alternative names (SANS) for the certificate. For each SAN, specify an array element with a Type and a corresponding Name. For example, SubjectAltNames:[ {Type:2, Name:www.example.com}, {Type:7, Name:9.5.45.11} ]. The Type parameter is an integer that represents the kind of SAN which can be 0:OtherName, 1: Email, 2:DNS, 6: URI, or 7:IPAddress. The Name value is the SAN Friendly name that corresponds to the Type parameter",
+                    "description": "Skip parameter if the policy already specifies SAN Types. Array of subject alternative names (SANS) for the certificate. For each SAN, specify an array element with a Type and a corresponding Name. For example, SubjectAltNames:[ {Type:2, Name:www.example.com}, {Type:7, Name:122.122.122.122} ]. The Type parameter is an integer that represents the kind of SAN which can be 0:OtherName, 1: Email, 2:DNS, 6: URI, or 7:IPAddress. The Name value is the SAN Friendly name that corresponds to the Type parameter",
                     "data_type": "string",
                     "order": 22
                 }
@@ -453,7 +453,7 @@
                     "data_path": "action_result.parameter.policy_dn",
                     "data_type": "string",
                     "example_values": [
-                        "\\VED\\Policy\\Certificates\\Splunk"
+                        "\\VED\\Policy\\Certificates\\Test"
                     ],
                     "contains": [
                         "venafi policy dn"
@@ -502,7 +502,7 @@
                     "column_name": "Certificate Dn",
                     "column_order": 0,
                     "example_values": [
-                        "\\VED\\Policy\\Certificates\\Splunk\\splk.com"
+                        "\\VED\\Policy\\Certificates\\test\\test.com"
                     ],
                     "contains": [
                         "venafi certificate dn"
@@ -555,7 +555,7 @@
             "action": "list certificates",
             "identifier": "list_certificates",
             "description": "Returns a list of certificates in Venafi",
-            "verbose": "Returns certificate details and total number of certificates that match specified search filters.",
+            "verbose": "Returns certificate details and the total number of certificates that match specified search filters.",
             "type": "investigate",
             "read_only": true,
             "parameters": {
@@ -927,7 +927,7 @@
                     "column_name": "Distinguished Name",
                     "column_order": 1,
                     "example_values": [
-                        "\\VED\\Policy\\Certificates\\Splunk\\Venafi Generated\\newcert.venafi.com"
+                        "\\VED\\Policy\\Certificates\\test\\Venafi Generated\\newcert.venafi.com"
                     ],
                     "contains": [
                         "venafi certificate dn"
@@ -953,7 +953,7 @@
                     "data_path": "action_result.data.*.ParentDn",
                     "data_type": "string",
                     "example_values": [
-                        "\\VED\\Policy\\Certificates\\Splunk\\Venafi Generated"
+                        "\\VED\\Policy\\Certificates\\test\\Venafi Generated"
                     ]
                 },
                 {
@@ -1085,7 +1085,6 @@
                 "reenable": {
                     "description": "Option to renew a previously disabled certificate",
                     "data_type": "boolean",
-                    "required": true,
                     "order": 2
                 }
             },
@@ -1104,7 +1103,7 @@
                     "data_path": "action_result.parameter.certificate_dn",
                     "data_type": "string",
                     "example_values": [
-                        "\\VED\\Policy\\Certificates\\Splunk\\Venafi Generated\\newcert.venafi.com"
+                        "\\VED\\Policy\\Certificates\\test\\Venafi Generated\\newcert.venafi.com"
                     ],
                     "contains": [
                         "venafi certificate dn"
@@ -1229,7 +1228,7 @@
                     "data_path": "action_result.parameter.certificate_dn",
                     "data_type": "string",
                     "example_values": [
-                        "\\VED\\Policy\\Certificates\\Splunk\\shiba.com"
+                        "\\VED\\Policy\\Certificates\\test\\shiba.com"
                     ],
                     "contains": [
                         "venafi certificate dn"
@@ -1239,7 +1238,7 @@
                     "data_path": "action_result.parameter.comments",
                     "data_type": "string",
                     "example_values": [
-                        "Please refer to Splunk generated certificates"
+                        "Please refer to test generated certificates"
                     ]
                 },
                 {
@@ -1331,7 +1330,7 @@
             "action": "get certificate",
             "identifier": "get_certificate",
             "description": "Downloads specified certificate to the vault",
-            "type": "generic",
+            "type": "investigative",
             "read_only": true,
             "parameters": {
                 "certificate_dn": {
@@ -1402,7 +1401,7 @@
                     "data_path": "action_result.parameter.certificate_dn",
                     "data_type": "string",
                     "example_values": [
-                        "\\VED\\Policy\\Certificates\\Splunk\\Splunk Generated\\pge.com"
+                        "\\VED\\Policy\\Certificates\\test\\testing Generated\\pge.com"
                     ],
                     "column_name": "Certificate Dn",
                     "column_order": 1,
