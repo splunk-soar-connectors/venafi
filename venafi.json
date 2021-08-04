@@ -1330,7 +1330,7 @@
             "action": "get certificate",
             "identifier": "get_certificate",
             "description": "Downloads specified certificate to the vault",
-            "type": "investigative",
+            "type": "investigate",
             "read_only": true,
             "parameters": {
                 "certificate_dn": {
