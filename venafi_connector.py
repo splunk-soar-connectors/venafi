@@ -4,6 +4,7 @@
 # SPLUNK CONFIDENTIAL - Use or disclosure of this material in whole or in part
 # without a valid written license from Splunk Inc. is PROHIBITED.
 # Phantom App imports
+from venafi_consts import *
 import phantom.app as phantom
 from phantom.base_connector import BaseConnector
 from phantom.action_result import ActionResult
@@ -58,7 +59,7 @@ class VenafiConnector(BaseConnector):
                 }
 
             elif self._state['access_token']['expires'] <= time.time():
-                uri = '/vedauth/Authorize/Token'
+                uri = VENAFI_FETCH_TOKEN_URI
                 body = {
                     "client_id": self._client_id,
                     "refresh_token": self._state['access_token']['refresh_token']
@@ -198,14 +199,14 @@ class VenafiConnector(BaseConnector):
         self.save_progress("Connecting to endpoint")
         # generate api key
         headers = self._authorize(action_result)
-        uri = '/vedauth/Authorize/Verify'
+        uri = VENAFI_VERIFY_TOKEN_URI
         # make rest call
         ret_val, response = self._make_rest_call(uri, action_result, params=None, headers=headers, method="get")
         if phantom.is_fail(ret_val):
-            self.save_progress("Test Connectivity Failed.")
+            self.save_progress(TEST_CONNECTIVITY_FAILED)
             return action_result.get_status()
 
-        self.save_progress('Test Connectivity Passed')
+        self.save_progress(TEST_CONNECTIVITY_SUCCESS)
         return action_result.set_status(phantom.APP_SUCCESS)
 
     def _handle_create_certificate(self, param):
@@ -215,7 +216,7 @@ class VenafiConnector(BaseConnector):
         action_result = self.add_action_result(ActionResult(dict(param)))
 
         headers = self._authorize(action_result)
-        uri = '/vedsdk/Certificates/Request'
+        uri = VENAFI_CREATE_CERTIFICATE_URI
 
         # Handling JSON param parsing
         try:
@@ -286,7 +287,7 @@ class VenafiConnector(BaseConnector):
 
         action_result = self.add_action_result(ActionResult(dict(param)))
         headers = self._authorize(action_result)
-        uri = '/vedsdk/Config/FindObjectsOfClass'
+        uri = VENAFI_LIST_POLICIES_URI
 
         data = {
             "Class": 'Policy',
@@ -313,7 +314,7 @@ class VenafiConnector(BaseConnector):
 
         action_result = self.add_action_result(ActionResult(dict(param)))
         headers = self._authorize(action_result)
-        uri = '/vedsdk/certificates'
+        uri = VENAFI_LIST_CERTIFICATES_URI
 
         # Optional Certificate filter attributes
         params = {}
@@ -321,12 +322,12 @@ class VenafiConnector(BaseConnector):
         if 'limit' in param:
             limit = param.get('limit')
             if type(limit) != int or int(limit) <= 0:
-                return action_result.set_status(phantom.APP_ERROR, "Please provide a non-zero positive integer in the limit")
+                return action_result.set_status(phantom.APP_ERROR, "Limit value must be an integer greater than 0")
             params['limit'] = limit
         if 'offset' in param:
             offset = param.get('offset')
             if type(offset) != int or int(offset) < 0:
-                return action_result.set_status(phantom.APP_ERROR, "Please provide a zero or positive integer in the offset")
+                return action_result.set_status(phantom.APP_ERROR, "Offset value must be an integer greater than 0")
             params['offset'] = offset
         if 'country' in param:
             params['C'] = param['country']
@@ -394,7 +395,7 @@ class VenafiConnector(BaseConnector):
 
         action_result = self.add_action_result(ActionResult(dict(param)))
         headers = self._authorize(action_result)
-        uri = '/vedsdk/Certificates/Renew'
+        uri = VENAFI_RENEW_CERTIFICATE_URI
 
         data = {
             "CertificateDN": param['certificate_dn'],
@@ -420,7 +421,7 @@ class VenafiConnector(BaseConnector):
 
         action_result = self.add_action_result(ActionResult(dict(param)))
         headers = self._authorize(action_result)
-        uri = '/vedsdk/Certificates/Revoke'
+        uri = VENAFI_REVOKE_CERTIFICATE_URI
 
         if not(param.get('certificate_dn') or param.get('thumbprint')):
             return RetVal(action_result.set_status(phantom.APP_ERROR, "Error: Must pass in either CertificateDN or Thumbprint parameter"), None)
@@ -451,7 +452,7 @@ class VenafiConnector(BaseConnector):
 
         action_result = self.add_action_result(ActionResult(dict(param)))
         headers = self._authorize(action_result)
-        uri = '/vedsdk/Certificates/Retrieve'
+        uri = VENAFI_GET_CERTIFICATE_URI
 
         # Optional Certificate filter attributes
         params = {}
@@ -479,7 +480,7 @@ class VenafiConnector(BaseConnector):
             return ret_val
 
         summary = action_result.update_summary({})
-        summary['status'] = "Successfully retrieved certificate and added to the vault"
+        summary['status'] = "Successfully retrieved certificate and downloaded it to vault"
 
         return action_result.set_status(phantom.APP_SUCCESS)
 
@@ -507,7 +508,7 @@ class VenafiConnector(BaseConnector):
             try:
                 vault_ret = Vault.create_attachment(r.content, self.get_container_id(), file_name=file_name)
             except Exception as e:
-                return action_result.set_status(phantom.APP_ERROR, "Could not add file to the vault: {0}".format(e))
+                return action_result.set_status(phantom.APP_ERROR, "Could not add file to vault: {0}".format(e))
         else:
             guid = uuid.uuid4()
             tmp_dir = "/vault/tmp/{}".format(guid)
@@ -534,9 +535,9 @@ class VenafiConnector(BaseConnector):
                             phantom.APP_JSON_NAME: file_name,
                             phantom.APP_JSON_SIZE: vault_ret.get(phantom.APP_JSON_SIZE)
                         })
-            action_result.set_status(phantom.APP_SUCCESS, "Successfully added file to the vault")
+            action_result.set_status(phantom.APP_SUCCESS, "Successfully added file to vault")
         else:
-            action_result.set_status(phantom.APP_ERROR, "Error adding file to the vault")
+            action_result.set_status(phantom.APP_ERROR, "Error adding file to vault")
 
         return action_result.get_status()
 
