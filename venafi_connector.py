@@ -14,21 +14,19 @@
 # and limitations under the License.
 #
 #
-# Phantom App imports
-from venafi_consts import *
+import json
+import os
+import time
+import uuid
+
 import phantom.app as phantom
-from phantom.base_connector import BaseConnector
+import requests
+from bs4 import BeautifulSoup
 from phantom.action_result import ActionResult
+from phantom.base_connector import BaseConnector
 from phantom.vault import Vault as Vault
 
-# Usage of the consts file is recommended
-# from venafi_consts import *
-import uuid
-import os
-import requests
-import json
-import time
-from bs4 import BeautifulSoup
+from venafi_consts import *
 
 
 class RetVal(tuple):
@@ -233,7 +231,8 @@ class VenafiConnector(BaseConnector):
         try:
             subject_alt_names = json.loads(param.get('subject_alt_names', '[]'))
         except Exception as e:
-            return action_result.set_status(phantom.APP_ERROR, 'Error occurred while parsing the subject alt names parameter. Error: {0}'.format(str(e)))
+            return action_result.set_status(phantom.APP_ERROR, 'Error occurred while parsing the subject alt names parameter. Error: {0}'.format(
+                str(e)))
 
         try:
             approvers = json.loads(param.get('approvers', '[]'))
@@ -243,7 +242,8 @@ class VenafiConnector(BaseConnector):
         try:
             ca_specific_attributes = json.loads(param.get('ca_specific_attributes', '[]'))
         except Exception as e:
-            return action_result.set_status(phantom.APP_ERROR, 'Error occurred while parsing the ca specific attributes parameter. Error: {0}'.format(str(e)))
+            return action_result.set_status(phantom.APP_ERROR,
+                                            'Error occurred while parsing the ca specific attributes parameter. Error: {0}'.format(str(e)))
 
         try:
             contacts = json.loads(param.get('contacts', '[]'))
@@ -608,8 +608,9 @@ class VenafiConnector(BaseConnector):
 
 if __name__ == '__main__':
 
-    import pudb
     import argparse
+
+    import pudb
 
     pudb.set_trace()
 
