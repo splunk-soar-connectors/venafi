@@ -10,14 +10,14 @@
     "product_version_regex": ".*",
     "publisher": "Splunk",
     "license": "Copyright (c) 2019-2021 Splunk Inc.",
-    "app_version": "2.0.1",
-    "utctime_updated": "2021-08-05T04:48:04.000000Z",
+    "app_version": "2.0.2",
+    "utctime_updated": "2021-12-08T01:17:34.000000Z",
     "package_name": "phantom_venafi",
     "main_module": "venafi_connector.py",
     "min_phantom_version": "4.9.39220",
     "app_wizard_version": "1.0.0",
     "python_version": "3",
-    "fips_compliant":true,
+    "fips_compliant": true,
     "latest_tested_version": [
         "Trust Protection Platform version 21.1, Tested on 3rd Aug 2021"
     ],
