@@ -17,6 +17,7 @@
     "min_phantom_version": "4.9.39220",
     "app_wizard_version": "1.0.0",
     "python_version": "3",
+    "fips_compliant":true,
     "latest_tested_version": [
         "Trust Protection Platform version 21.1, Tested on 3rd Aug 2021"
     ],
