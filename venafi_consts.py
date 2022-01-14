@@ -20,6 +20,7 @@ VENAFI_CREATE_CERTIFICATE_URI = '/vedsdk/Certificates/Request'
 VENAFI_LIST_POLICIES_URI = '/vedsdk/Config/FindObjectsOfClass'
 VENAFI_REVOKE_CERTIFICATE_URI = '/vedsdk/Certificates/Revoke'
 VENAFI_GET_CERTIFICATE_URI = '/vedsdk/Certificates/Retrieve'
+VENAFI_DEFAULT_TIMEOUT = 30
 
 TEST_CONNECTIVITY_FAILED = "Test Connectivity Failed."
 TEST_CONNECTIVITY_SUCCESS = 'Test Connectivity Passed'
