@@ -9,7 +9,7 @@
     "product_name": "Venafi",
     "product_version_regex": ".*",
     "publisher": "Splunk",
-    "license": "Copyright (c) 2019-2021 Splunk Inc.",
+    "license": "Copyright (c) 2019-2022 Splunk Inc.",
     "app_version": "2.0.3",
     "utctime_updated": "2022-01-07T20:49:52.000000Z",
     "package_name": "phantom_venafi",
@@ -1550,7 +1550,7 @@
             },
             {
                 "module": "urllib3",
-                "input_file": "wheels/urllib3-1.26.7-py2.py3-none-any.whl"
+                "input_file": "wheels/urllib3-1.26.8-py2.py3-none-any.whl"
             }
         ]
     }

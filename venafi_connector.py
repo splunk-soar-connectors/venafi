@@ -1,6 +1,6 @@
 # File: venafi_connector.py
 #
-# Copyright (c) 2019-2021 Splunk Inc.
+# Copyright (c) 2019-2022 Splunk Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -503,7 +503,8 @@ class VenafiConnector(BaseConnector):
             r = requests.get(
                 url,
                 headers=headers,
-                params=params)
+                params=params,
+                timeout=VENAFI_DEFAULT_TIMEOUT)
 
         except Exception as ex:
             self.debug_print('Exception in _download_file_to_vault: {}'.format(ex))
@@ -609,6 +610,7 @@ class VenafiConnector(BaseConnector):
 if __name__ == '__main__':
 
     import argparse
+    import sys
 
     import pudb
 
@@ -636,7 +638,7 @@ if __name__ == '__main__':
         login_url = BaseConnector._get_phantom_base_url() + "login"
         try:
             print("Accessing the Login page")
-            r = requests.get(login_url, verify=True)
+            r = requests.get(login_url, verify=True, timeout=VENAFI_DEFAULT_TIMEOUT)
             csrftoken = r.cookies['csrftoken']
 
             data = dict()
@@ -649,11 +651,11 @@ if __name__ == '__main__':
             headers['Referer'] = login_url
 
             print("Logging into Platform to get the session id")
-            r2 = requests.post(login_url, verify=True, data=data, headers=headers)
+            r2 = requests.post(login_url, verify=True, data=data, headers=headers, timeout=VENAFI_DEFAULT_TIMEOUT)
             session_id = r2.cookies['sessionid']
         except Exception as e:
             print("Unable to get session id from the platfrom. Error: " + str(e))
-            exit(1)
+            sys.exit(1)
 
     with open(args.input_test_json) as f:
         in_json = f.read()
@@ -670,4 +672,4 @@ if __name__ == '__main__':
         ret_val = connector._handle_action(json.dumps(in_json), None)
         print(json.dumps(json.loads(ret_val), indent=4))
 
-    exit(0)
+    sys.exit(0)
