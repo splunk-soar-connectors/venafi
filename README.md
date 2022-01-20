@@ -2,7 +2,7 @@
 # Venafi
 
 Publisher: Splunk  
-Connector Version: 2\.0\.2  
+Connector Version: 2\.0\.4  
 Product Vendor: Venafi  
 Product Name: Venafi  
 Product Version Supported (regex): "\.\*"  
