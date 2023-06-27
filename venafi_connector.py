@@ -1,6 +1,6 @@
 # File: venafi_connector.py
 #
-# Copyright (c) 2019-2022 Splunk Inc.
+# Copyright (c) 2019-2023 Splunk Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ from phantom.action_result import ActionResult
 from phantom.base_connector import BaseConnector
 from phantom.vault import Vault as Vault
 
+import venafi_consts as consts
 from venafi_consts import *
 
 
@@ -49,6 +50,9 @@ class VenafiConnector(BaseConnector):
         self._base_url = None
         # variable to make sure access token is fetched only once on failure
         self.access_token_retry = True
+        self._username = None
+        self._password = None
+        self._client_id = None
 
     def _authorize(self, action_result):
         headers = {'Content-Type': 'application/json'}
@@ -85,7 +89,34 @@ class VenafiConnector(BaseConnector):
         }
         return headers
 
-    def _process_empty_reponse(self, response, action_result):
+    @staticmethod
+    def _validate_integer(action_result, parameter, key, allow_zero=False):
+        """
+        Validate an integer.
+
+        :param action_result: Action result or BaseConnector object
+        :param parameter: input parameter
+        :param key: input parameter message key
+        :allow_zero: whether zero should be considered as valid value or not
+        :return: status phantom.APP_ERROR/phantom.APP_SUCCESS, integer value of the parameter or None in case of failure
+        """
+        if parameter is not None:
+            try:
+                if not float(parameter).is_integer():
+                    return action_result.set_status(phantom.APP_ERROR, consts.VENAFI_VALID_INTEGER_MESSAGE.format(param=key)), None
+
+                parameter = int(parameter)
+            except Exception:
+                return action_result.set_status(phantom.APP_ERROR, consts.VENAFI_VALID_INTEGER_MESSAGE.format(param=key)), None
+
+            if parameter < 0:
+                return action_result.set_status(phantom.APP_ERROR, consts.VENAFI_NON_NEGATIVE_INTEGER_MESSAGE.format(param=key)), None
+            if not allow_zero and parameter == 0:
+                return action_result.set_status(phantom.APP_ERROR, consts.VENAFI_POSITIVE_INTEGER_MESSAGE.format(param=key)), None
+
+        return phantom.APP_SUCCESS, parameter
+
+    def _process_empty_response(self, response, action_result):
 
         self.save_progress("{}".format(response.status_code))
         if response.status_code == 200:
@@ -102,6 +133,9 @@ class VenafiConnector(BaseConnector):
 
         try:
             soup = BeautifulSoup(response.text, "html.parser")
+            # Remove the script, style, footer and navigation part from the HTML message
+            for element in soup(["script", "style", "footer", "nav"]):
+                element.extract()
             error_text = soup.text
             split_lines = error_text.split('\n')
             split_lines = [x.strip() for x in split_lines if x.strip()]
@@ -163,7 +197,7 @@ class VenafiConnector(BaseConnector):
 
         # it's not content-type that is to be parsed, handle an empty response
         if not r.text:
-            return self._process_empty_reponse(r, action_result)
+            return self._process_empty_response(r, action_result)
 
         # everything else is actually an error at this point
         message = "Can't process response from server. Status Code: {0} Data from server: {1}".format(
@@ -255,6 +289,12 @@ class VenafiConnector(BaseConnector):
         except Exception as e:
             return action_result.set_status(phantom.APP_ERROR, 'Error occurred while parsing the devices parameter. Error: {0}'.format(str(e)))
 
+        key_bit_size = param.get('key_bit_size')
+        if key_bit_size:
+            ret_val, key_bit_size = self._validate_integer(action_result, key_bit_size, "key_bit_size")
+            if phantom.is_fail(ret_val):
+                return action_result.get_status()
+
         data = {
             "Approvers": approvers,
             "CADN": param.get('cadn'),
@@ -264,10 +304,10 @@ class VenafiConnector(BaseConnector):
             "Country": param.get('country'),
             "CreatedBy": param.get('created_by'),
             "Devices": devices,
-            "DisableAutomaticRenewal": param.get('disable_automatic_renewal'),
+            "DisableAutomaticRenewal": param.get('disable_automatic_renewal', False),
             "EllipticalCurve": param.get('elliptical_curve'),
             "KeyAlgorithm": param.get('key_algorithm'),
-            "KeyBitSize": param.get('key_bit_size'),
+            "KeyBitSize": key_bit_size,
             "ManagementType": param.get('management_type'),
             "PolicyDN": param['policy_dn'],
             "Subject": param.get('subject'),
@@ -276,8 +316,8 @@ class VenafiConnector(BaseConnector):
             "Organization": param.get('organization'),
             "OrganizationalUnit": param.get('organizational_unit'),
             "PKCS10": param.get('pkcs10'),
-            "Reenable": param.get("reenable"),
-            "SetWorkToDo": param.get('set_work_to_do'),
+            "Reenable": param.get("reenable", False),
+            "SetWorkToDo": param.get('set_work_to_do', False),
             "State": param.get('state')
         }
         ret_val, response = self._make_rest_call(uri, action_result, headers=headers, data=data, method="post")
@@ -328,64 +368,18 @@ class VenafiConnector(BaseConnector):
         uri = VENAFI_LIST_CERTIFICATES_URI
 
         # Optional Certificate filter attributes
-        params = {}
+        params = {value: param[key] for key, value in consts.VENAFI_LIST_CERTIFICATES_PARAMS.items() if key in param}
 
         if 'limit' in param:
-            limit = param.get('limit')
-            if type(limit) != int or int(limit) <= 0:
-                return action_result.set_status(phantom.APP_ERROR, "Please provide a non-zero positive integer in the limit")
+            ret_val, limit = self._validate_integer(action_result, param.get('limit'), "limit")
+            if phantom.is_fail(ret_val):
+                return action_result.get_status()
             params['limit'] = limit
         if 'offset' in param:
-            offset = param.get('offset')
-            if type(offset) != int or int(offset) < 0:
-                return action_result.set_status(phantom.APP_ERROR, "Please provide a zero or positive integer in the offset")
+            ret_val, offset = self._validate_integer(action_result, param.get('offset'), "offset")
+            if phantom.is_fail(ret_val):
+                return action_result.get_status()
             params['offset'] = offset
-        if 'country' in param:
-            params['C'] = param['country']
-        if 'common_name' in param:
-            params['CN'] = param['common_name']
-        # if 'issuer' in param:
-        #     params['Issuer'] = param['issuer']
-        if 'key_algorithm' in param:
-            params['KeyAlgorithm'] = param['key_algorithm']
-        if 'key_size' in param:
-            params['KeySize'] = param['key_size']
-        if 'key_size_greater' in param:
-            params['KeySizeGreater'] = param['key_size_greater']
-        if 'key_size_less' in param:
-            params['KeySizeLess'] = param['key_size_less']
-        if 'city' in param:
-            params['L'] = param['city']
-        if 'organization' in param:
-            params['O'] = param['organization']
-        if 'organization_unit' in param:
-            params['OU'] = param['organization_unit']
-        if 'state' in param:
-            params['S'] = param['state']
-        if 'san_dns' in param:
-            params['SAN-DNS'] = param['san_dns']
-        if 'san_email' in param:
-            params['SAN-Email'] = param['san_email']
-        if 'san_ip' in param:
-            params['SAN-IP'] = param['san_ip']
-        if 'san_upn' in param:
-            params['SAN-UPN'] = param['san_upn']
-        if 'san_uri' in param:
-            params['SAN-URI'] = param['san_uri']
-        if 'serial' in param:
-            params['Serial'] = param['serial']
-        if 'signature_algorithm' in param:
-            params['SignatureAlgorithm'] = param['signature_algorithm']
-        if 'thumbprint' in param:
-            params['Thumbprint'] = param['thumbprint']
-        if 'valid_from' in param:
-            params['ValidFrom'] = param['valid_from']
-        if 'valid_to' in param:
-            params['ValidTo'] = param['valid_to']
-        if 'valid_to_greater' in param:
-            params['ValidToGreater'] = param['valid_to_greater']
-        if 'valid_to_less' in param:
-            params['ValidToLess'] = param['valid_to_less']
 
         ret_val, response = self._make_rest_call(uri, action_result, params=params, headers=headers, method="get")
 
@@ -411,7 +405,7 @@ class VenafiConnector(BaseConnector):
         data = {
             "CertificateDN": param['certificate_dn'],
             "PKCS10": param.get("pkcs10"),
-            "Reenable": param.get("reenable")
+            "Reenable": param.get("reenable", False)
         }
 
         ret_val, response = self._make_rest_call(uri, action_result, headers=headers, method="post", data=data)
@@ -442,7 +436,7 @@ class VenafiConnector(BaseConnector):
             "Thumbprint": param.get('thumbprint'),
             "Reason": param.get('reason'),
             "Comments": param.get('comments'),
-            "Disable": param.get('disable')
+            "Disable": param.get('disable', False)
         }
 
         ret_val, response = self._make_rest_call(uri, action_result, headers=headers, method="post", data=data)
@@ -466,24 +460,7 @@ class VenafiConnector(BaseConnector):
         uri = VENAFI_GET_CERTIFICATE_URI
 
         # Optional Certificate filter attributes
-        params = {}
-
-        if 'certificate_dn' in param:
-            params['CertificateDN'] = param['certificate_dn']
-        if 'format' in param:
-            params['Format'] = param['format']
-        if 'friendly_name' in param:
-            params['FriendlyName'] = param['friendly_name']
-        if 'include_chain' in param:
-            params['IncludeChain'] = param['include_chain']
-        if 'include_private_key' in param:
-            params['IncludePrivateKey'] = param['include_private_key']
-        if 'keystore_password' in param:
-            params['KeystorePassword'] = param['keystore_password']
-        if 'password' in param:
-            params['Password'] = param['password']
-        if 'root_first_order' in param:
-            params['RootFirstOrder'] = param['root_first_order']
+        params = {value: param[key] for key, value in consts.VENAFI_GET_CERTIFICATE_PARAMS.items() if key in param}
 
         ret_val = self._download_file_to_vault(action_result, uri, headers=headers, params=params)
 
@@ -599,6 +576,12 @@ class VenafiConnector(BaseConnector):
         self._password = config['password'].strip()
         self._client_id = config['client_id'].strip()
         return phantom.APP_SUCCESS
+
+    def encrypt_state(self):
+        pass
+
+    def decrypt_state(self):
+        pass
 
     def finalize(self):
 
