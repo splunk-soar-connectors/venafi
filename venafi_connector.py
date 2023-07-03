@@ -16,18 +16,17 @@
 #
 import json
 import os
-import time
 import uuid
 
 import phantom.app as phantom
 import requests
 from bs4 import BeautifulSoup
+from encryption_helper import decrypt, encrypt
 from phantom.action_result import ActionResult
 from phantom.base_connector import BaseConnector
 from phantom.vault import Vault as Vault
 
 import venafi_consts as consts
-from venafi_consts import *
 
 
 class RetVal(tuple):
@@ -48,46 +47,94 @@ class VenafiConnector(BaseConnector):
         # Do note that the app json defines the asset config, so please
         # modify this as you deem fit.
         self._base_url = None
-        # variable to make sure access token is fetched only once on failure
-        self.access_token_retry = True
         self._username = None
         self._password = None
         self._client_id = None
+        self._access_token = None
+        self._refresh_token = None
+        self._asset_id = None
 
-    def _authorize(self, action_result):
-        headers = {'Content-Type': 'application/json'}
+    def finalize(self):
 
-        # if there is no access token or old one is expired
-        if self._state.get('access_token') is None or self._state['access_token']['expires'] <= time.time():
+        # Save the state, this data is saved accross actions and app upgrades
+        self.encrypt_state()
+        self.save_state(self._state)
+        return phantom.APP_SUCCESS
 
-            if self._state.get('access_token') is None:
-                uri = '/vedauth/authorize/oauth'
-                # current set of actions supported byt this app only requires these scopes.
-                # scopes will need to be changed as the requirements of actions supported by app
-                body = {
-                    "username": self._username,
-                    "password": self._password,
-                    "client_id": self._client_id,
-                    "scope": "certificate:discover,delete,manage,revoke;configuration"
-                }
+    def initialize(self):
 
-            elif self._state['access_token']['expires'] <= time.time():
-                uri = VENAFI_FETCH_TOKEN_URI
-                body = {
-                    "client_id": self._client_id,
-                    "refresh_token": self._state['access_token']['refresh_token']
-                }
+        # Load the state in initialize, use it to store data
+        # that needs to be accessed across actions
+        self._state = self.load_state()
+        self._asset_id = self.get_asset_id()
+        if not isinstance(self._state, dict):
+            self.debug_print("Resetting the state file with the default format")
+            self._state = {"app_version": self.get_app_json().get('app_version')}
 
-            ret_val, response = self._make_rest_call(uri, action_result, data=body,
-                                                    headers=headers, method='post')
-            self._state['access_token'] = response
-            self.save_progress('Successfully generated Access Token')
+        # get the asset config
+        config = self.get_config()
+        self.decrypt_state()
+        self._base_url = config['base_url'].rstrip('/')
+        self._username = config['username'].strip()
+        self._password = config['password'].strip()
+        self._client_id = config['client_id'].strip()
+        self._access_token = self._state.get(consts.VENAFI_STATE_ACCESS_TOKEN, {}).get(consts.VENAFI_STATE_ACCESS_TOKEN)
+        self._refresh_token = self._state.get(consts.VENAFI_STATE_ACCESS_TOKEN, {}).\
+            get(consts.VENAFI_STATE_REFRESH_TOKEN)
+        return phantom.APP_SUCCESS
 
-        headers = {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer {}'.format(self._state['access_token']['access_token'])
-        }
-        return headers
+    def encrypt_state(self):
+        if self._state.get(consts.VENAFI_STATE_IS_ENCRYPTED):
+            return
+
+        access_token = self._state.get(consts.VENAFI_STATE_ACCESS_TOKEN, {}).get(consts.VENAFI_STATE_ACCESS_TOKEN)
+        if access_token:
+            try:
+                self._state[consts.VENAFI_STATE_ACCESS_TOKEN][consts.VENAFI_STATE_ACCESS_TOKEN] = \
+                    encrypt(access_token, self._asset_id)
+            except Exception as ex:
+                self.debug_print("{}: {}"
+                                 .format(consts.VENAFI_ENCRYPTION_ERROR, self._get_error_message_from_exception(ex)))
+                self._state[consts.VENAFI_STATE_ACCESS_TOKEN][consts.VENAFI_STATE_ACCESS_TOKEN] = None
+
+        refresh_token = self._state.get(consts.VENAFI_STATE_ACCESS_TOKEN, {}).get(consts.VENAFI_STATE_REFRESH_TOKEN)
+        if refresh_token:
+            try:
+                self._state[consts.VENAFI_STATE_ACCESS_TOKEN][consts.VENAFI_STATE_REFRESH_TOKEN] = \
+                    encrypt(refresh_token, self._asset_id)
+            except Exception as ex:
+                self.debug_print("{}: {}"
+                                 .format(consts.VENAFI_ENCRYPTION_ERROR, self._get_error_message_from_exception(ex)))
+                self._state[consts.VENAFI_STATE_ACCESS_TOKEN][consts.VENAFI_STATE_REFRESH_TOKEN] = None
+
+        self._state[consts.VENAFI_STATE_IS_ENCRYPTED] = True
+
+    def decrypt_state(self):
+
+        if not self._state.get(consts.VENAFI_STATE_IS_ENCRYPTED):
+            return
+
+        access_token = self._state.get(consts.VENAFI_STATE_ACCESS_TOKEN, {}).get(consts.VENAFI_STATE_ACCESS_TOKEN)
+        if access_token:
+            try:
+                self._state[consts.VENAFI_STATE_ACCESS_TOKEN][consts.VENAFI_STATE_ACCESS_TOKEN] = \
+                    decrypt(access_token, self._asset_id)
+            except Exception as ex:
+                self.debug_print("{}: {}"
+                                 .format(consts.VENAFI_DECRYPTION_ERROR, self._get_error_message_from_exception(ex)))
+                self._state[consts.VENAFI_STATE_ACCESS_TOKEN][consts.VENAFI_STATE_ACCESS_TOKEN] = None
+
+        refresh_token = self._state.get(consts.VENAFI_STATE_ACCESS_TOKEN, {}).get(consts.VENAFI_STATE_REFRESH_TOKEN)
+        if refresh_token:
+            try:
+                self._state[consts.VENAFI_STATE_ACCESS_TOKEN][consts.VENAFI_STATE_REFRESH_TOKEN] = \
+                    decrypt(refresh_token, self._asset_id)
+            except Exception as ex:
+                self.debug_print("{}: {}"
+                                 .format(consts.VENAFI_DECRYPTION_ERROR, self._get_error_message_from_exception(ex)))
+                self._state[consts.VENAFI_STATE_ACCESS_TOKEN][consts.VENAFI_STATE_REFRESH_TOKEN] = None
+
+        self._state[consts.VENAFI_STATE_IS_ENCRYPTED] = False
 
     @staticmethod
     def _validate_integer(action_result, parameter, key, allow_zero=False):
@@ -116,15 +163,44 @@ class VenafiConnector(BaseConnector):
 
         return phantom.APP_SUCCESS, parameter
 
+    def _get_error_message_from_exception(self, e):
+        """
+        Get appropriate error message from the exception.
+        :param e: Exception object
+        :return: error message
+        """
+
+        err_code = None
+        err_msg = consts.VENAFI_ERROR_MESSAGE_UNAVAILABLE
+
+        try:
+            if hasattr(e, "args"):
+                if len(e.args) > 1:
+                    err_code = e.args[0]
+                    err_msg = e.args[1]
+                elif len(e.args) == 1:
+                    err_msg = e.args[0]
+        except Exception as e:
+            self.debug_print("Error occurred while getting message from response. Error : {}".format(e))
+
+        if not err_code:
+            err_text = "Error Message: {}".format(err_msg)
+        else:
+            err_text = "Error Code: {}. Error Message: {}".format(err_code, err_msg)
+
+        return err_text
+
     def _process_empty_response(self, response, action_result):
 
         self.save_progress("{}".format(response.status_code))
-        if response.status_code == 200:
+        if response.ok:
             return RetVal(phantom.APP_SUCCESS, {})
         elif response.status_code == 401:
-            return RetVal(action_result.set_status(phantom.APP_ERROR, "Unauthorized. Invalid username or password"), None)
+            return RetVal(action_result.set_status(phantom.APP_ERROR,
+                                                   "Unauthorized. Invalid username or password"), None)
 
-        return RetVal(action_result.set_status(phantom.APP_ERROR, "Empty response and no information in the header"), None)
+        return RetVal(action_result.set_status(phantom.APP_ERROR, "Empty response and no information in the header "
+                                                                  "Status Code: {}".format(response.status_code)), None)
 
     def _process_html_response(self, response, action_result):
 
@@ -205,35 +281,164 @@ class VenafiConnector(BaseConnector):
 
         return RetVal(action_result.set_status(phantom.APP_ERROR, message), None)
 
-    def _make_rest_call(self, endpoint, action_result, headers=None, params=None, data=None, method="get", **kwargs):
+    def _get_token(self, action_result, refresh_token=False, force_new_token=False):
+        headers = {'Content-Type': 'application/json'}
+        response = None
+        if force_new_token or (not self._access_token and not self._refresh_token):
+            self.debug_print("Generating tokens forcefully")
+            uri = '/vedauth/authorize/oauth'
+            # current set of actions supported by this app only requires these scopes.
+            # scopes will need to be changed as the requirements of actions supported by app
+            body = {
+                "username": self._username,
+                "password": self._password,
+                "client_id": self._client_id,
+                "scope": "certificate:discover,delete,manage,revoke;configuration"
+            }
+        elif refresh_token or (not self._access_token and self._refresh_token):
+            self.debug_print("Generating token using refresh token")
+            uri = consts.VENAFI_FETCH_TOKEN_URI
+            body = {"client_id": self._client_id, "refresh_token": self._refresh_token}
+        else:
+            self.debug_print("Using old token")
+            return RetVal(phantom.APP_SUCCESS, None)
+
+        try:
+            endpoint = self._base_url + uri
+            response = requests.post(endpoint, json=body, headers=headers, timeout=consts.VENAFI_DEFAULT_TIMEOUT)
+        except Exception as ex:
+            error_message = self._get_error_message_from_exception(ex)
+            self.debug_print("Error to make request call Error:{0}".format(error_message))
+            return RetVal(action_result.set_status(phantom.APP_ERROR, "Error to make request call for generating token "
+                                                                      "Error:{0}".format(error_message)), response)
+
+        if response.status_code != 200:
+            if refresh_token:
+                self.debug_print("Refresh token is invalid")
+                # Request for fetching new token from refresh token failed, so trying to fetch new token forcefully
+                return self._get_token(action_result=action_result, force_new_token=True)
+            else:
+                return self._process_response(response, action_result)
+
+        resp_json = response.json()
+        self.save_progress('Successfully generated Access Token')
+        self._state[consts.VENAFI_STATE_ACCESS_TOKEN] = resp_json
+        self._access_token = resp_json[consts.VENAFI_STATE_ACCESS_TOKEN]
+        self._refresh_token = resp_json[consts.VENAFI_STATE_REFRESH_TOKEN]
+        self.encrypt_state()
+        self.save_state(self._state)
+        return RetVal(phantom.APP_SUCCESS, None)
+
+    def make_rest_call_wrapper(func):
+        def _handle_token(self, endpoint, action_result, *args, **kwargs):
+
+            ret_val, response = self._get_token(action_result, force_new_token=True if self.get_action_identifier() ==
+                                                                                       'test_connectivity' else False)
+            if phantom.is_fail(ret_val):
+                return ret_val, response
+
+            ret_val, response = func(self, endpoint, action_result, *args, **kwargs)
+            if phantom.is_fail(ret_val) and response == 401:
+                self.debug_print("Old token is invalid")
+                ret_val, response = self._get_token(action_result, refresh_token=True)
+                if phantom.is_fail(ret_val):
+                    return ret_val, response
+                ret_val, response = func(self, endpoint, action_result, *args, **kwargs)
+
+            return ret_val, response
+
+        return _handle_token
+
+    @make_rest_call_wrapper
+    def _make_rest_call(self, endpoint, action_result, **kwargs):
         # **kwargs can be any additional parameters that requests.request accepts
         resp_json = None
-
+        kwargs['headers'] = {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer {}'.format(self._access_token)
+        }
+        method = kwargs.pop('method')
         try:
             request_func = getattr(requests, method)
         except AttributeError:
-            return RetVal(action_result.set_status(phantom.APP_ERROR, "Invalid method: {0}".format(method)), resp_json)
+            return RetVal(action_result.set_status(phantom.APP_ERROR, "Invalid method: {0}".format(method)),
+                          resp_json)
 
         # Create a URL to connect to
         url = self._base_url + endpoint
 
         try:
-            r = request_func(
-                            url,
-                            headers=headers,
-                            json=data,
-                            params=params)
-            # makes rest call again with new access token in case old one gave 401 error
-            if r.status_code == 401 and self.access_token_retry:
-                self._state.pop('access_token')
-                headers = self._authorize(action_result)
-                self.access_token_retry = False  # make it to false to avoid getting access token after one time (prevents recursive loop)
-                return self._make_rest_call(endpoint, action_result, headers, params, data, method, **kwargs)
+            r = request_func(url, timeout=consts.VENAFI_DEFAULT_TIMEOUT, **kwargs)
+
+            # check for invalid access token
+            if r.status_code == 401:
+                return phantom.APP_ERROR, r.status_code
 
         except Exception as ex:
-            self.debug_print('Exception in _make_rest_call: {}'.format(ex))
-            return RetVal(action_result.set_status(phantom.APP_ERROR, "Error Connecting to server. Details: {0}".format(str(ex))), resp_json)
+            error_message = self._get_error_message_from_exception(ex)
+            return RetVal(action_result.set_status(phantom.APP_ERROR, "Error Connecting to server. Details: {0}"
+                                                   .format(error_message)), resp_json)
         return self._process_response(r, action_result)
+
+    @make_rest_call_wrapper
+    def _download_file_to_vault(self, endpoint, action_result, **kwargs):
+        """ Download a file and add it to the vault """
+
+        kwargs['headers'] = {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer {}'.format(self._access_token)
+        }
+
+        url = self._base_url + endpoint
+        try:
+            r = requests.get(url, timeout=consts.VENAFI_DEFAULT_TIMEOUT, **kwargs)
+        except Exception as ex:
+            error_message = self._get_error_message_from_exception(ex)
+            return RetVal(action_result.set_status(phantom.APP_ERROR, "{}".format(error_message)))
+
+        # If file content length is 0, meaning the file is empty, then fail with the reason
+        if not int(r.headers.get('Content-Length')):
+            return RetVal(action_result.set_status(phantom.APP_ERROR, "{}".format(r.reason)))
+
+        file_name = r.headers.get('Content-Disposition', 'filename').split('"')[1]
+
+        if hasattr(Vault, 'get_vault_tmp_dir'):
+            try:
+                vault_ret = Vault.create_attachment(r.content, self.get_container_id(), file_name=file_name)
+            except Exception as e:
+                return RetVal(action_result.set_status(phantom.APP_ERROR,
+                                                       "Could not add file to the vault: {0}".format(e)))
+        else:
+            guid = uuid.uuid4()
+            tmp_dir = "/vault/tmp/{}".format(guid)
+            zip_path = "{}/{}".format(tmp_dir, file_name)
+
+            try:
+                os.makedirs(tmp_dir)
+            except Exception as e:
+                msg = "Unable to create temporary folder '{}': ".format(tmp_dir)
+                return RetVal(action_result.set_status(phantom.APP_ERROR, msg, e))
+
+            with open(zip_path, 'wb') as f:
+                f.write(r.content)
+                f.close()
+
+            vault_path = "{}/{}".format(tmp_dir, file_name)
+
+            vault_ret = Vault.add_attachment(vault_path, self.get_container_id(), file_name=file_name)
+
+        if vault_ret.get('succeeded'):
+            action_result.set_status(phantom.APP_SUCCESS, "Transferred file")
+            action_result.add_data({
+                phantom.APP_JSON_VAULT_ID: vault_ret[phantom.APP_JSON_HASH],
+                phantom.APP_JSON_NAME: file_name,
+                phantom.APP_JSON_SIZE: vault_ret.get(phantom.APP_JSON_SIZE)
+            })
+            action_result.set_status(phantom.APP_SUCCESS, "Successfully added file to the vault")
+        else:
+            action_result.set_status(phantom.APP_ERROR, "Error adding file to the vault")
+
+        return RetVal(action_result.get_status())
 
     def _handle_test_connectivity(self, param):
 
@@ -241,15 +446,14 @@ class VenafiConnector(BaseConnector):
 
         self.save_progress("Connecting to endpoint")
         # generate api key
-        headers = self._authorize(action_result)
-        uri = VENAFI_VERIFY_TOKEN_URI
+        uri = consts.VENAFI_VERIFY_TOKEN_URI
         # make rest call
-        ret_val, response = self._make_rest_call(uri, action_result, params=None, headers=headers, method="get")
+        ret_val, response = self._make_rest_call(uri, action_result, params=None, method="get")
         if phantom.is_fail(ret_val):
-            self.save_progress(TEST_CONNECTIVITY_FAILED)
+            self.save_progress(consts.TEST_CONNECTIVITY_FAILED)
             return action_result.get_status()
 
-        self.save_progress(TEST_CONNECTIVITY_SUCCESS)
+        self.save_progress(consts.TEST_CONNECTIVITY_SUCCESS)
         return action_result.set_status(phantom.APP_SUCCESS)
 
     def _handle_create_certificate(self, param):
@@ -257,37 +461,44 @@ class VenafiConnector(BaseConnector):
         self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
 
         action_result = self.add_action_result(ActionResult(dict(param)))
-
-        headers = self._authorize(action_result)
-        uri = VENAFI_CREATE_CERTIFICATE_URI
+        uri = consts.VENAFI_CREATE_CERTIFICATE_URI
 
         # Handling JSON param parsing
         try:
             subject_alt_names = json.loads(param.get('subject_alt_names', '[]'))
         except Exception as e:
+            error_message = self._get_error_message_from_exception(e)
             return action_result.set_status(phantom.APP_ERROR, 'Error occurred while parsing the subject alt names parameter. Error: {0}'.format(
-                str(e)))
+                error_message))
 
         try:
             approvers = json.loads(param.get('approvers', '[]'))
         except Exception as e:
-            return action_result.set_status(phantom.APP_ERROR, 'Error occurred while parsing the approvers parameter. Error: {0}'.format(str(e)))
+            error_message = self._get_error_message_from_exception(e)
+            return action_result.set_status(phantom.APP_ERROR, 'Error occurred while parsing the approvers parameter. '
+                                                               'Error: {0}'.format(error_message))
 
         try:
             ca_specific_attributes = json.loads(param.get('ca_specific_attributes', '[]'))
         except Exception as e:
+            error_message = self._get_error_message_from_exception(e)
             return action_result.set_status(phantom.APP_ERROR,
-                                            'Error occurred while parsing the ca specific attributes parameter. Error: {0}'.format(str(e)))
+                                            'Error occurred while parsing the ca specific attributes parameter. Error: '
+                                            '{0}'.format(error_message))
 
         try:
             contacts = json.loads(param.get('contacts', '[]'))
         except Exception as e:
-            return action_result.set_status(phantom.APP_ERROR, 'Error occurred while parsing the contacts parameter. Error: {0}'.format(str(e)))
+            error_message = self._get_error_message_from_exception(e)
+            return action_result.set_status(phantom.APP_ERROR, 'Error occurred while parsing the contacts parameter. '
+                                                               'Error: {0}'.format(error_message))
 
         try:
             devices = json.loads(param.get('devices', '[]'))
         except Exception as e:
-            return action_result.set_status(phantom.APP_ERROR, 'Error occurred while parsing the devices parameter. Error: {0}'.format(str(e)))
+            error_message = self._get_error_message_from_exception(e)
+            return action_result.set_status(phantom.APP_ERROR, 'Error occurred while parsing the devices parameter. '
+                                                               'Error: {0}'.format(error_message))
 
         key_bit_size = param.get('key_bit_size')
         if key_bit_size:
@@ -320,7 +531,7 @@ class VenafiConnector(BaseConnector):
             "SetWorkToDo": param.get('set_work_to_do', False),
             "State": param.get('state')
         }
-        ret_val, response = self._make_rest_call(uri, action_result, headers=headers, data=data, method="post")
+        ret_val, response = self._make_rest_call(uri, action_result, json=data, method="post")
 
         if phantom.is_fail(ret_val):
             return ret_val
@@ -337,8 +548,7 @@ class VenafiConnector(BaseConnector):
         self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
 
         action_result = self.add_action_result(ActionResult(dict(param)))
-        headers = self._authorize(action_result)
-        uri = VENAFI_LIST_POLICIES_URI
+        uri = consts.VENAFI_LIST_POLICIES_URI
 
         data = {
             "Class": 'Policy',
@@ -346,7 +556,7 @@ class VenafiConnector(BaseConnector):
             "Recursive": 1
         }
 
-        ret_val, response = self._make_rest_call(uri, action_result, headers=headers, method="post", data=data)
+        ret_val, response = self._make_rest_call(uri, action_result, json=data, method="post")
 
         if phantom.is_fail(ret_val):
             return ret_val
@@ -364,8 +574,7 @@ class VenafiConnector(BaseConnector):
         self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
 
         action_result = self.add_action_result(ActionResult(dict(param)))
-        headers = self._authorize(action_result)
-        uri = VENAFI_LIST_CERTIFICATES_URI
+        uri = consts.VENAFI_LIST_CERTIFICATES_URI
 
         # Optional Certificate filter attributes
         params = {value: param[key] for key, value in consts.VENAFI_LIST_CERTIFICATES_PARAMS.items() if key in param}
@@ -381,7 +590,7 @@ class VenafiConnector(BaseConnector):
                 return action_result.get_status()
             params['offset'] = offset
 
-        ret_val, response = self._make_rest_call(uri, action_result, params=params, headers=headers, method="get")
+        ret_val, response = self._make_rest_call(uri, action_result, params=params, method="get")
 
         if phantom.is_fail(ret_val):
             return ret_val
@@ -399,8 +608,7 @@ class VenafiConnector(BaseConnector):
         self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
 
         action_result = self.add_action_result(ActionResult(dict(param)))
-        headers = self._authorize(action_result)
-        uri = VENAFI_RENEW_CERTIFICATE_URI
+        uri = consts.VENAFI_RENEW_CERTIFICATE_URI
 
         data = {
             "CertificateDN": param['certificate_dn'],
@@ -408,7 +616,7 @@ class VenafiConnector(BaseConnector):
             "Reenable": param.get("reenable", False)
         }
 
-        ret_val, response = self._make_rest_call(uri, action_result, headers=headers, method="post", data=data)
+        ret_val, response = self._make_rest_call(uri, action_result, json=data, method="post")
 
         if phantom.is_fail(ret_val):
             return ret_val
@@ -425,8 +633,7 @@ class VenafiConnector(BaseConnector):
         self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
 
         action_result = self.add_action_result(ActionResult(dict(param)))
-        headers = self._authorize(action_result)
-        uri = VENAFI_REVOKE_CERTIFICATE_URI
+        uri = consts.VENAFI_REVOKE_CERTIFICATE_URI
 
         if not(param.get('certificate_dn') or param.get('thumbprint')):
             return RetVal(action_result.set_status(phantom.APP_ERROR, "Error: Must pass in either CertificateDN or Thumbprint parameter"), None)
@@ -439,7 +646,7 @@ class VenafiConnector(BaseConnector):
             "Disable": param.get('disable', False)
         }
 
-        ret_val, response = self._make_rest_call(uri, action_result, headers=headers, method="post", data=data)
+        ret_val, response = self._make_rest_call(uri, action_result, json=data, method="post")
 
         if phantom.is_fail(ret_val):
             return ret_val
@@ -456,13 +663,12 @@ class VenafiConnector(BaseConnector):
         self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
 
         action_result = self.add_action_result(ActionResult(dict(param)))
-        headers = self._authorize(action_result)
-        uri = VENAFI_GET_CERTIFICATE_URI
+        uri = consts.VENAFI_GET_CERTIFICATE_URI
 
         # Optional Certificate filter attributes
         params = {value: param[key] for key, value in consts.VENAFI_GET_CERTIFICATE_PARAMS.items() if key in param}
 
-        ret_val = self._download_file_to_vault(action_result, uri, headers=headers, params=params)
+        ret_val, _ = self._download_file_to_vault(uri, action_result, params=params)
 
         if phantom.is_fail(ret_val):
             return ret_val
@@ -471,64 +677,6 @@ class VenafiConnector(BaseConnector):
         summary['status'] = "Successfully retrieved certificate and added to the vault"
 
         return action_result.set_status(phantom.APP_SUCCESS)
-
-    def _download_file_to_vault(self, action_result, endpoint, headers, params):
-        """ Download a file and add it to the vault """
-
-        url = self._base_url + endpoint
-        try:
-            r = requests.get(
-                url,
-                headers=headers,
-                params=params,
-                timeout=VENAFI_DEFAULT_TIMEOUT)
-
-        except Exception as ex:
-            self.debug_print('Exception in _download_file_to_vault: {}'.format(ex))
-            return action_result.set_status(phantom.APP_ERROR, "{}".format(str(ex)))
-
-        # If file content length is 0, meaning the file is empty, then fail with the reason
-        if not int(r.headers.get('Content-Length')):
-            return action_result.set_status(phantom.APP_ERROR, "{}".format(r.reason))
-
-        file_name = r.headers.get('Content-Disposition', 'filename').split('"')[1]
-
-        if hasattr(Vault, 'get_vault_tmp_dir'):
-            try:
-                vault_ret = Vault.create_attachment(r.content, self.get_container_id(), file_name=file_name)
-            except Exception as e:
-                return action_result.set_status(phantom.APP_ERROR, "Could not add file to the vault: {0}".format(e))
-        else:
-            guid = uuid.uuid4()
-            tmp_dir = "/vault/tmp/{}".format(guid)
-            zip_path = "{}/{}".format(tmp_dir, file_name)
-
-            try:
-                os.makedirs(tmp_dir)
-            except Exception as e:
-                msg = "Unable to create temporary folder '{}': ".format(tmp_dir)
-                return action_result.set_status(phantom.APP_ERROR, msg, e)
-
-            with open(zip_path, 'wb') as f:
-                f.write(r.content)
-                f.close()
-
-            vault_path = "{}/{}".format(tmp_dir, file_name)
-
-            vault_ret = Vault.add_attachment(vault_path, self.get_container_id(), file_name=file_name)
-
-        if vault_ret.get('succeeded'):
-            action_result.set_status(phantom.APP_SUCCESS, "Transferred file")
-            action_result.add_data({
-                            phantom.APP_JSON_VAULT_ID: vault_ret[phantom.APP_JSON_HASH],
-                            phantom.APP_JSON_NAME: file_name,
-                            phantom.APP_JSON_SIZE: vault_ret.get(phantom.APP_JSON_SIZE)
-                        })
-            action_result.set_status(phantom.APP_SUCCESS, "Successfully added file to the vault")
-        else:
-            action_result.set_status(phantom.APP_ERROR, "Error adding file to the vault")
-
-        return action_result.get_status()
 
     def handle_action(self, param):
 
@@ -562,33 +710,6 @@ class VenafiConnector(BaseConnector):
 
         return ret_val
 
-    def initialize(self):
-
-        # Load the state in initialize, use it to store data
-        # that needs to be accessed across actions
-        self._state = self.load_state()
-
-        # get the asset config
-        config = self.get_config()
-
-        self._base_url = config['base_url'].rstrip('/')
-        self._username = config['username'].strip()
-        self._password = config['password'].strip()
-        self._client_id = config['client_id'].strip()
-        return phantom.APP_SUCCESS
-
-    def encrypt_state(self):
-        pass
-
-    def decrypt_state(self):
-        pass
-
-    def finalize(self):
-
-        # Save the state, this data is saved accross actions and app upgrades
-        self.save_state(self._state)
-        return phantom.APP_SUCCESS
-
 
 if __name__ == '__main__':
 
@@ -621,7 +742,7 @@ if __name__ == '__main__':
         login_url = BaseConnector._get_phantom_base_url() + "login"
         try:
             print("Accessing the Login page")
-            r = requests.get(login_url, verify=True, timeout=VENAFI_DEFAULT_TIMEOUT)
+            r = requests.get(login_url, verify=True, timeout=consts.VENAFI_DEFAULT_TIMEOUT)
             csrftoken = r.cookies['csrftoken']
 
             data = dict()
@@ -634,7 +755,7 @@ if __name__ == '__main__':
             headers['Referer'] = login_url
 
             print("Logging into Platform to get the session id")
-            r2 = requests.post(login_url, verify=True, data=data, headers=headers, timeout=VENAFI_DEFAULT_TIMEOUT)
+            r2 = requests.post(login_url, verify=True, data=data, headers=headers, timeout=consts.VENAFI_DEFAULT_TIMEOUT)
             session_id = r2.cookies['sessionid']
         except Exception as e:
             print("Unable to get session id from the platfrom. Error: " + str(e))

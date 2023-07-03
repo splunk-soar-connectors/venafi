@@ -12,6 +12,14 @@
 # the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
 # either express or implied. See the License for the specific language governing permissions
 # and limitations under the License.
+
+# state file keys
+VENAFI_STATE_ACCESS_TOKEN = 'access_token'
+VENAFI_STATE_REFRESH_TOKEN = 'refresh_token'
+VENAFI_STATE_EXPIRES = 'expires'
+VENAFI_STATE_IS_ENCRYPTED = 'is_encrypted'
+
+# APIs
 VENAFI_FETCH_TOKEN_URI = '/vedauth/Authorize/Token'
 VENAFI_LIST_CERTIFICATES_URI = '/vedsdk/certificates'
 VENAFI_RENEW_CERTIFICATE_URI = '/vedsdk/Certificates/Renew'
@@ -20,14 +28,19 @@ VENAFI_CREATE_CERTIFICATE_URI = '/vedsdk/Certificates/Request'
 VENAFI_LIST_POLICIES_URI = '/vedsdk/Config/FindObjectsOfClass'
 VENAFI_REVOKE_CERTIFICATE_URI = '/vedsdk/Certificates/Revoke'
 VENAFI_GET_CERTIFICATE_URI = '/vedsdk/Certificates/Retrieve'
-VENAFI_DEFAULT_TIMEOUT = 30
 
+# messages
 TEST_CONNECTIVITY_FAILED = "Test Connectivity Failed"
 TEST_CONNECTIVITY_SUCCESS = 'Test Connectivity Passed'
 VENAFI_VALID_INTEGER_MESSAGE = "Please provide a valid integer value in the {param}"
 VENAFI_NON_NEGATIVE_INTEGER_MESSAGE = "Please provide a valid non-negative integer value in the {param}"
 VENAFI_POSITIVE_INTEGER_MESSAGE = "Please provide a valid non-zero positive integer value in the {param}"
+VENAFI_ENCRYPTION_ERROR = "Error occurred while encrypting the state file"
+VENAFI_DECRYPTION_ERROR = "Error occurred while decrypting the state file"
+VENAFI_ERROR_MESSAGE_UNAVAILABLE = "Error message unavailable. Please check the asset configuration and|or action parameters"
+VENAFI_INVALID_REFRESH_TOKEN = "refresh token is invalid"
 
+VENAFI_DEFAULT_TIMEOUT = 30
 VENAFI_LIST_CERTIFICATES_PARAMS = {
     'country': 'C',
     'common_name': 'CN',
