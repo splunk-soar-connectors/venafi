@@ -69,9 +69,6 @@ VENAFI_GET_CERTIFICATE_PARAMS = {
     'certificate_dn': 'CertificateDN',
     'format': 'Format',
     'friendly_name': 'FriendlyName',
-    'include_chain': 'IncludeChain',
-    'include_private_key': 'IncludePrivateKey',  # pragma: allowlist secret
     'keystore_password': 'KeystorePassword',  # pragma: allowlist secret
-    'password': 'Password',  # pragma: allowlist secret
-    'root_first_order': 'RootFirstOrder'
+    'password': 'Password'  # pragma: allowlist secret
 }

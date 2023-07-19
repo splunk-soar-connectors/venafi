@@ -136,6 +136,11 @@ class VenafiConnector(BaseConnector):
 
         self._state[consts.VENAFI_STATE_IS_ENCRYPTED] = False
 
+    def remove_tokens(self):
+        if self._state.get(consts.VENAFI_STATE_ACCESS_TOKEN):
+            self._state.pop(consts.VENAFI_STATE_ACCESS_TOKEN)
+            self.save_state(self._state)
+
     @staticmethod
     def _validate_integer(action_result, parameter, key, allow_zero=False):
         """
@@ -170,25 +175,25 @@ class VenafiConnector(BaseConnector):
         :return: error message
         """
 
-        err_code = None
-        err_msg = consts.VENAFI_ERROR_MESSAGE_UNAVAILABLE
+        error_code = None
+        error_message = consts.VENAFI_ERROR_MESSAGE_UNAVAILABLE
 
         try:
             if hasattr(e, "args"):
                 if len(e.args) > 1:
-                    err_code = e.args[0]
-                    err_msg = e.args[1]
+                    error_code = e.args[0]
+                    error_message = e.args[1]
                 elif len(e.args) == 1:
-                    err_msg = e.args[0]
+                    error_message = e.args[0]
         except Exception as e:
             self.debug_print("Error occurred while getting message from response. Error : {}".format(e))
 
-        if not err_code:
-            err_text = "Error Message: {}".format(err_msg)
+        if not error_code:
+            error_text = "Error Message: {}".format(error_message)
         else:
-            err_text = "Error Code: {}. Error Message: {}".format(err_code, err_msg)
+            error_text = "Error Code: {}. Error Message: {}".format(error_code, error_message)
 
-        return err_text
+        return error_text
 
     def _process_empty_response(self, response, action_result):
 
@@ -313,8 +318,10 @@ class VenafiConnector(BaseConnector):
                                                                       "Error:{0}".format(error_message)), response)
 
         if response.status_code != 200:
-            if refresh_token:
+            if refresh_token or (not self._access_token and self._refresh_token):
                 self.debug_print("Refresh token is invalid")
+                self._refresh_token = None
+                self.remove_tokens()
                 # Request for fetching new token from refresh token failed, so trying to fetch new token forcefully
                 return self._get_token(action_result=action_result, force_new_token=True)
             else:
@@ -332,8 +339,8 @@ class VenafiConnector(BaseConnector):
     def make_rest_call_wrapper(func):
         def _handle_token(self, endpoint, action_result, *args, **kwargs):
 
-            ret_val, response = self._get_token(action_result, force_new_token=True if self.get_action_identifier() ==
-                                                                                       'test_connectivity' else False)
+            force_new_token = True if self.get_action_identifier() == 'test_connectivity' else False
+            ret_val, response = self._get_token(action_result, force_new_token=force_new_token)
             if phantom.is_fail(ret_val):
                 return ret_val, response
 
@@ -410,7 +417,7 @@ class VenafiConnector(BaseConnector):
                                                        "Could not add file to the vault: {0}".format(e)))
         else:
             guid = uuid.uuid4()
-            tmp_dir = "/vault/tmp/{}".format(guid)
+            tmp_dir = "opt/phantom/vault/tmp/{}".format(guid)
             zip_path = "{}/{}".format(tmp_dir, file_name)
 
             try:
@@ -421,24 +428,23 @@ class VenafiConnector(BaseConnector):
 
             with open(zip_path, 'wb') as f:
                 f.write(r.content)
-                f.close()
 
             vault_path = "{}/{}".format(tmp_dir, file_name)
 
             vault_ret = Vault.add_attachment(vault_path, self.get_container_id(), file_name=file_name)
 
         if vault_ret.get('succeeded'):
-            action_result.set_status(phantom.APP_SUCCESS, "Transferred file")
+            self.debug_print("Transferred file")
             action_result.add_data({
                 phantom.APP_JSON_VAULT_ID: vault_ret[phantom.APP_JSON_HASH],
                 phantom.APP_JSON_NAME: file_name,
                 phantom.APP_JSON_SIZE: vault_ret.get(phantom.APP_JSON_SIZE)
             })
-            action_result.set_status(phantom.APP_SUCCESS, "Successfully added file to the vault")
-        else:
-            action_result.set_status(phantom.APP_ERROR, "Error adding file to the vault")
+            self.debug_print("Successfully added file to the vault")
+            return RetVal(action_result.set_status(phantom.APP_SUCCESS))
 
-        return RetVal(action_result.get_status())
+        self.debug_print("Error adding file to the vault")
+        return RetVal(action_result.set_status(phantom.APP_ERROR))
 
     def _handle_test_connectivity(self, param):
 
@@ -450,6 +456,8 @@ class VenafiConnector(BaseConnector):
         # make rest call
         ret_val, response = self._make_rest_call(uri, action_result, params=None, method="get")
         if phantom.is_fail(ret_val):
+            self.debug_print("Removing old tokens")
+            self.remove_tokens()
             self.save_progress(consts.TEST_CONNECTIVITY_FAILED)
             return action_result.get_status()
 
@@ -500,12 +508,6 @@ class VenafiConnector(BaseConnector):
             return action_result.set_status(phantom.APP_ERROR, 'Error occurred while parsing the devices parameter. '
                                                                'Error: {0}'.format(error_message))
 
-        key_bit_size = param.get('key_bit_size')
-        if key_bit_size:
-            ret_val, key_bit_size = self._validate_integer(action_result, key_bit_size, "key_bit_size")
-            if phantom.is_fail(ret_val):
-                return action_result.get_status()
-
         data = {
             "Approvers": approvers,
             "CADN": param.get('cadn'),
@@ -518,7 +520,7 @@ class VenafiConnector(BaseConnector):
             "DisableAutomaticRenewal": param.get('disable_automatic_renewal', False),
             "EllipticalCurve": param.get('elliptical_curve'),
             "KeyAlgorithm": param.get('key_algorithm'),
-            "KeyBitSize": key_bit_size,
+            "KeyBitSize": param.get('key_bit_size'),
             "ManagementType": param.get('management_type'),
             "PolicyDN": param['policy_dn'],
             "Subject": param.get('subject'),
@@ -585,7 +587,7 @@ class VenafiConnector(BaseConnector):
                 return action_result.get_status()
             params['limit'] = limit
         if 'offset' in param:
-            ret_val, offset = self._validate_integer(action_result, param.get('offset'), "offset")
+            ret_val, offset = self._validate_integer(action_result, param.get('offset'), "offset", allow_zero=True)
             if phantom.is_fail(ret_val):
                 return action_result.get_status()
             params['offset'] = offset
@@ -667,6 +669,9 @@ class VenafiConnector(BaseConnector):
 
         # Optional Certificate filter attributes
         params = {value: param[key] for key, value in consts.VENAFI_GET_CERTIFICATE_PARAMS.items() if key in param}
+        params['IncludeChain'] = param.get('include_chain', False)
+        params['IncludePrivateKey'] = param.get('include_private_key', False)
+        params['RootFirstOrder'] = param.get('root_first_order', False)
 
         ret_val, _ = self._download_file_to_vault(uri, action_result, params=params)
 
