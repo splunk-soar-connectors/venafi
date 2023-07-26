@@ -16,9 +16,11 @@
 #
 import json
 import os
-import uuid
+import tempfile
 
 import phantom.app as phantom
+import phantom.rules as ph_rules
+import phantom.vault as phantom_vault
 import requests
 from bs4 import BeautifulSoup
 from encryption_helper import decrypt, encrypt
@@ -177,7 +179,7 @@ class VenafiConnector(BaseConnector):
 
         error_code = None
         error_message = consts.VENAFI_ERROR_MESSAGE_UNAVAILABLE
-
+        self.error_print("Exception Occurred.", dump_object=e)
         try:
             if hasattr(e, "args"):
                 if len(e.args) > 1:
@@ -239,7 +241,8 @@ class VenafiConnector(BaseConnector):
             resp_json = r.json()
         except Exception as ex:
             self.debug_print('Exception in _download_file_to_vault: {}'.format(ex))
-            return RetVal(action_result.set_status(phantom.APP_ERROR, "Unable to parse JSON response. Error: {0}".format(str(ex))), None)
+            return RetVal(action_result.set_status(phantom.APP_ERROR, "Unable to parse JSON response. Error: {0}"
+                                                   .format(self._get_error_message_from_exception(ex))), None)
 
         # Please specify the status codes here
         if 200 <= r.status_code < 399:
@@ -291,7 +294,7 @@ class VenafiConnector(BaseConnector):
         response = None
         if force_new_token or (not self._access_token and not self._refresh_token):
             self.debug_print("Generating tokens forcefully")
-            uri = '/vedauth/authorize/oauth'
+            uri = consts.VENAFI_FETCH_TOKEN_URI
             # current set of actions supported by this app only requires these scopes.
             # scopes will need to be changed as the requirements of actions supported by app
             body = {
@@ -302,14 +305,14 @@ class VenafiConnector(BaseConnector):
             }
         elif refresh_token or (not self._access_token and self._refresh_token):
             self.debug_print("Generating token using refresh token")
-            uri = consts.VENAFI_FETCH_TOKEN_URI
+            uri = consts.VENAFI_FETCH_ACCESS_TOKEN_URI
             body = {"client_id": self._client_id, "refresh_token": self._refresh_token}
         else:
             self.debug_print("Using old token")
             return RetVal(phantom.APP_SUCCESS, None)
 
         try:
-            endpoint = self._base_url + uri
+            endpoint = f'{self._base_url}{uri}'
             response = requests.post(endpoint, json=body, headers=headers, timeout=consts.VENAFI_DEFAULT_TIMEOUT)
         except Exception as ex:
             error_message = self._get_error_message_from_exception(ex)
@@ -372,7 +375,7 @@ class VenafiConnector(BaseConnector):
                           resp_json)
 
         # Create a URL to connect to
-        url = self._base_url + endpoint
+        url = f'{self._base_url}{endpoint}'
 
         try:
             r = request_func(url, timeout=consts.VENAFI_DEFAULT_TIMEOUT, **kwargs)
@@ -387,6 +390,12 @@ class VenafiConnector(BaseConnector):
                                                    .format(error_message)), resp_json)
         return self._process_response(r, action_result)
 
+    def _get_vault_info(self, vault_id):
+        _, _, vault_infos = phantom_vault.vault_info(container_id=self.get_container_id(), vault_id=vault_id)
+        if not vault_infos:
+            _, _, vault_infos = phantom_vault.vault_info(vault_id=vault_id)
+        return vault_infos[0] if vault_infos else None
+
     @make_rest_call_wrapper
     def _download_file_to_vault(self, endpoint, action_result, **kwargs):
         """ Download a file and add it to the vault """
@@ -396,7 +405,7 @@ class VenafiConnector(BaseConnector):
             'Authorization': 'Bearer {}'.format(self._access_token)
         }
 
-        url = self._base_url + endpoint
+        url = f'{self._base_url}{endpoint}'
         try:
             r = requests.get(url, timeout=consts.VENAFI_DEFAULT_TIMEOUT, **kwargs)
         except Exception as ex:
@@ -410,41 +419,35 @@ class VenafiConnector(BaseConnector):
         file_name = r.headers.get('Content-Disposition', 'filename').split('"')[1]
 
         if hasattr(Vault, 'get_vault_tmp_dir'):
-            try:
-                vault_ret = Vault.create_attachment(r.content, self.get_container_id(), file_name=file_name)
-            except Exception as e:
-                return RetVal(action_result.set_status(phantom.APP_ERROR,
-                                                       "Could not add file to the vault: {0}".format(e)))
+            fd, tmp_file_path = tempfile.mkstemp(dir=Vault.get_vault_tmp_dir())
         else:
-            guid = uuid.uuid4()
-            tmp_dir = "opt/phantom/vault/tmp/{}".format(guid)
-            zip_path = "{}/{}".format(tmp_dir, file_name)
+            fd, tmp_file_path = tempfile.mkstemp(dir="/opt/phantom/vault/tmp")
+        os.close(fd)
 
-            try:
-                os.makedirs(tmp_dir)
-            except Exception as e:
-                msg = "Unable to create temporary folder '{}': ".format(tmp_dir)
-                return RetVal(action_result.set_status(phantom.APP_ERROR, msg, e))
+        with open(tmp_file_path, 'wb') as f:
+            f.write(r.content)
 
-            with open(zip_path, 'wb') as f:
-                f.write(r.content)
+        success, msg, vault_id = ph_rules.vault_add(
+            container=self.get_container_id(),
+            file_location=tmp_file_path,
+            file_name=file_name,
+        )
 
-            vault_path = "{}/{}".format(tmp_dir, file_name)
+        if not success:
+            return RetVal(action_result.set_status(phantom.APP_ERROR,
+                                                   "Error adding file to the vault, Error: {}".format(msg)))
 
-            vault_ret = Vault.add_attachment(vault_path, self.get_container_id(), file_name=file_name)
+        vault_info = self._get_vault_info(vault_id)
+        if not vault_info:
+            return RetVal(action_result.set_status(phantom.APP_ERROR, "Failed to find vault entry {}".format(vault_id)))
 
-        if vault_ret.get('succeeded'):
-            self.debug_print("Transferred file")
-            action_result.add_data({
-                phantom.APP_JSON_VAULT_ID: vault_ret[phantom.APP_JSON_HASH],
-                phantom.APP_JSON_NAME: file_name,
-                phantom.APP_JSON_SIZE: vault_ret.get(phantom.APP_JSON_SIZE)
-            })
-            self.debug_print("Successfully added file to the vault")
-            return RetVal(action_result.set_status(phantom.APP_SUCCESS))
-
-        self.debug_print("Error adding file to the vault")
-        return RetVal(action_result.set_status(phantom.APP_ERROR))
+        action_result.add_data({
+            phantom.APP_JSON_VAULT_ID: vault_id,
+            phantom.APP_JSON_NAME: file_name,
+            phantom.APP_JSON_SIZE: vault_info['size']
+        })
+        self.debug_print("Successfully added file to the vault")
+        return RetVal(action_result.set_status(phantom.APP_SUCCESS))
 
     def _handle_test_connectivity(self, param):
 
@@ -669,6 +672,7 @@ class VenafiConnector(BaseConnector):
 
         # Optional Certificate filter attributes
         params = {value: param[key] for key, value in consts.VENAFI_GET_CERTIFICATE_PARAMS.items() if key in param}
+        params['Format'] = param.get('format', 'Base64')
         params['IncludeChain'] = param.get('include_chain', False)
         params['IncludePrivateKey'] = param.get('include_private_key', False)
         params['RootFirstOrder'] = param.get('root_first_order', False)
@@ -730,12 +734,14 @@ if __name__ == '__main__':
     argparser.add_argument('input_test_json', help='Input Test JSON file')
     argparser.add_argument('-u', '--username', help='username', required=False)
     argparser.add_argument('-p', '--password', help='password', required=False)
+    argparser.add_argument('-v', '--verify', action='store_true', help='verify', required=False, default=False)
 
     args = argparser.parse_args()
     session_id = None
 
     username = args.username
     password = args.password
+    verify = args.verify
 
     if username is not None and password is None:
 
@@ -747,7 +753,7 @@ if __name__ == '__main__':
         login_url = BaseConnector._get_phantom_base_url() + "login"
         try:
             print("Accessing the Login page")
-            r = requests.get(login_url, verify=True, timeout=consts.VENAFI_DEFAULT_TIMEOUT)
+            r = requests.get(login_url, verify=verify, timeout=consts.VENAFI_DEFAULT_TIMEOUT)
             csrftoken = r.cookies['csrftoken']
 
             data = dict()
@@ -760,7 +766,7 @@ if __name__ == '__main__':
             headers['Referer'] = login_url
 
             print("Logging into Platform to get the session id")
-            r2 = requests.post(login_url, verify=True, data=data, headers=headers, timeout=consts.VENAFI_DEFAULT_TIMEOUT)
+            r2 = requests.post(login_url, verify=verify, data=data, headers=headers, timeout=consts.VENAFI_DEFAULT_TIMEOUT)
             session_id = r2.cookies['sessionid']
         except Exception as e:
             print("Unable to get session id from the platfrom. Error: " + str(e))

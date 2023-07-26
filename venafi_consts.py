@@ -20,7 +20,8 @@ VENAFI_STATE_EXPIRES = 'expires'
 VENAFI_STATE_IS_ENCRYPTED = 'is_encrypted'
 
 # APIs
-VENAFI_FETCH_TOKEN_URI = '/vedauth/Authorize/Token'
+VENAFI_FETCH_ACCESS_TOKEN_URI = '/vedauth/Authorize/Token'
+VENAFI_FETCH_TOKEN_URI = '/vedauth/authorize/oauth'
 VENAFI_LIST_CERTIFICATES_URI = '/vedsdk/certificates'
 VENAFI_RENEW_CERTIFICATE_URI = '/vedsdk/Certificates/Renew'
 VENAFI_VERIFY_TOKEN_URI = '/vedauth/Authorize/Verify'
@@ -67,7 +68,6 @@ VENAFI_LIST_CERTIFICATES_PARAMS = {
 }
 VENAFI_GET_CERTIFICATE_PARAMS = {
     'certificate_dn': 'CertificateDN',
-    'format': 'Format',
     'friendly_name': 'FriendlyName',
     'keystore_password': 'KeystorePassword',  # pragma: allowlist secret
     'password': 'Password'  # pragma: allowlist secret
