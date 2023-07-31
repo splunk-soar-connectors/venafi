@@ -9,17 +9,17 @@
     "product_name": "Venafi",
     "product_version_regex": ".*",
     "publisher": "Splunk",
-    "license": "Copyright (c) 2019-2022 Splunk Inc.",
-    "app_version": "2.0.4",
+    "license": "Copyright (c) 2019-2023 Splunk Inc.",
+    "app_version": "2.1.0",
     "utctime_updated": "2022-01-14T21:46:13.000000Z",
     "package_name": "phantom_venafi",
     "main_module": "venafi_connector.py",
-    "min_phantom_version": "4.9.39220",
+    "min_phantom_version": "6.0.2",
     "app_wizard_version": "1.0.0",
     "python_version": "3",
     "fips_compliant": true,
     "latest_tested_version": [
-        "Trust Protection Platform version 21.1, Tested on 3rd Aug 2021"
+        "Trust Protection Platform version 21.1, Tested on 24th July 2023"
     ],
     "configuration": {
         "base_url": {
@@ -83,7 +83,7 @@
                     "data_path": "action_result.data.*.AbsoluteGUID",
                     "data_type": "string",
                     "example_values": [
-                        "{798ee447-74f4-4c8a-8972-62aff3b2fee3}{266d63f4-0bfc-468a-b41f-d8fa477bd1c0}{5020eaa0-1de7-4be4-bfe8-fbcb7e948502}{842cbb4b-1cde-4d48-9684-a04effa3be7f}"
+                        "{TESTe447-74f4-4c8a-8972-62aff3b2fee3}{EXAMPLE63f4-0bfc-468a-b41f-d8fa477bd1c0}{EXAMPLEaa0-1de7-4be4-bfe8-fbcb7e948502}{TESTbb4b-1cde-4d48-9684-a04effa3be7f}"
                     ]
                 },
                 {
@@ -102,7 +102,7 @@
                     "data_path": "action_result.data.*.GUID",
                     "data_type": "string",
                     "example_values": [
-                        "{842cbb4b-1cde-4d48-9684-a04effa3be7f}"
+                        "{TESTbb4b-1cde-4d48-9684-a04effa3be7f}"
                     ]
                 },
                 {
@@ -336,7 +336,7 @@
                     "data_path": "action_result.parameter.approvers",
                     "data_type": "string",
                     "example_values": [
-                        "[{\"PrefixedUniversal\":\"local:tppadmin\"}]"
+                        "[{\"PrefixedUniversal\":\"local:test\"}]"
                     ]
                 },
                 {
@@ -350,7 +350,7 @@
                     "data_path": "action_result.parameter.cadn",
                     "data_type": "string",
                     "example_values": [
-                        "\\VED\\Policy\\Partner Dev\\TLS\\Certificates\\Testing\\tpp.venafidemo.com"
+                        "\\VED\\Policy\\Partner Dev\\TLS\\Certificates\\Testing\\tpp.testdemo.com"
                     ]
                 },
                 {
@@ -364,7 +364,7 @@
                     "data_path": "action_result.parameter.contacts",
                     "data_type": "string",
                     "example_values": [
-                        "[{\"PrefixedUniversal\":\"local:tppadmin\"}]"
+                        "[{\"PrefixedUniversal\":\"local:testuser\"}]"
                     ]
                 },
                 {
@@ -392,10 +392,6 @@
                         true,
                         false
                     ]
-                },
-                {
-                    "data_path": "action_result.parameter.disable_automatic_renewal",
-                    "data_type": "boolean"
                 },
                 {
                     "data_path": "action_result.parameter.elliptical_curve",
@@ -515,7 +511,7 @@
                     "column_name": "Certificate Guid",
                     "column_order": 1,
                     "example_values": [
-                        "56906419-8615-40ce-b556-63db74ae833b"
+                        "TEST6419-8615-40ce-b556-63EXAMPLEe833b"
                     ]
                 },
                 {
@@ -735,7 +731,7 @@
                         "url"
                     ],
                     "example_values": [
-                        "tpp.venafidemo.com"
+                        "tpp.testdemo.com"
                     ]
                 },
                 {
@@ -809,7 +805,7 @@
                         "url"
                     ],
                     "example_values": [
-                        "venafidemo.com"
+                        "testdemo.com"
                     ]
                 },
                 {
@@ -819,7 +815,7 @@
                         "email"
                     ],
                     "example_values": [
-                        "admin@venafidemo.com"
+                        "example@test.com"
                     ]
                 },
                 {
@@ -839,7 +835,7 @@
                         "email"
                     ],
                     "example_values": [
-                        "admin@venafidemo.com"
+                        "test@example.com"
                     ]
                 },
                 {
@@ -849,7 +845,7 @@
                         "url"
                     ],
                     "example_values": [
-                        "https://www.venafi.com"
+                        "https://www.example.com"
                     ]
                 },
                 {
@@ -928,7 +924,7 @@
                     "column_name": "Distinguished Name",
                     "column_order": 1,
                     "example_values": [
-                        "\\VED\\Policy\\Certificates\\test\\Venafi Generated\\newcert.venafi.com"
+                        "\\VED\\Policy\\Certificates\\test\\Venafi Generated\\example.venafi.com"
                     ],
                     "contains": [
                         "venafi certificate dn"
@@ -938,7 +934,7 @@
                     "data_path": "action_result.data.*.Guid",
                     "data_type": "string",
                     "example_values": [
-                        "{125827f9-938f-42fe-a1a6-475afdc51448}"
+                        "{TEST27f9-938f-42fe-a1a6-475afdc5TEST}"
                     ]
                 },
                 {
@@ -947,7 +943,7 @@
                     "column_name": "Certificate",
                     "column_order": 0,
                     "example_values": [
-                        "newcert.venafi.com"
+                        "example.test.com"
                     ]
                 },
                 {
@@ -968,7 +964,7 @@
                     "data_path": "action_result.data.*.X509.CN",
                     "data_type": "string",
                     "example_values": [
-                        "newcert.venafi.com"
+                        "example.venafi.com"
                     ]
                 },
                 {
@@ -979,7 +975,7 @@
                     ]
                 },
                 {
-                    "data_path": "action_result.data.*.X509.SANS.Email",
+                    "data_path": "action_result.data.*.X509.SANS.Email.*",
                     "data_type": "string",
                     "example_values": [
                         "test@123.com"
@@ -992,14 +988,14 @@
                     "data_path": "action_result.data.*.X509.Serial",
                     "data_type": "string",
                     "example_values": [
-                        "17CE5338000100009FA9"
+                        "TEST5338000100009FA9"
                     ]
                 },
                 {
                     "data_path": "action_result.data.*.X509.Thumbprint",
                     "data_type": "string",
                     "example_values": [
-                        "0F5615E5C9664FF67587A24BFA0CC87BA8C66B87"
+                        "TEST15E5C9664FF67587A24BFA0CC87BA8C66B87"
                     ],
                     "contains": [
                         "sha1"
@@ -1023,7 +1019,7 @@
                     "data_path": "action_result.data.*._links.*.Details",
                     "data_type": "string",
                     "example_values": [
-                        "/vedsdk/certificates/%7b125827f9-938f-42fe-a1a6-475afdc51448%7d"
+                        "/vedsdk/certificates/%TEST5827f9-938f-42fe-a1a6-475afdc51448%7d"
                     ]
                 },
                 {
@@ -1104,7 +1100,7 @@
                     "data_path": "action_result.parameter.certificate_dn",
                     "data_type": "string",
                     "example_values": [
-                        "\\VED\\Policy\\Certificates\\test\\Venafi Generated\\newcert.venafi.com"
+                        "\\VED\\Policy\\Certificates\\test\\Venafi Generated\\example.venafi.com"
                     ],
                     "contains": [
                         "venafi certificate dn"
@@ -1264,36 +1260,39 @@
                         "sha1"
                     ],
                     "example_values": [
-                        "648CCDA4F588CFC22DB0F407A8A85D79B088F0AA"
+                        "TESTCDA4F588CFC22DB0F407A8A85D79B088TEST"
                     ]
-                },
-                {
-                    "data_path": "action_result.data",
-                    "data_type": "string"
                 },
                 {
                     "data_path": "action_result.data.*.Requested",
                     "data_type": "boolean",
-                    "example_value": true
+                    "example_values": [
+                        true,
+                        false
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.Revoked",
                     "data_type": "boolean",
-                    "example_value": true
+                    "example_values": [
+                        true,
+                        false
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.Success",
                     "data_type": "boolean",
-                    "example_value": true
+                    "example_values": [
+                        true,
+                        false
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.Warning",
                     "data_type": "string",
-                    "example_value": "Revocation is already completed. The certificate \"\\VED\\Policy\\Partner Dev\\TLS\\Certificates\\Testing\\testfriendlyname2\" revocation was requested by another request or process."
-                },
-                {
-                    "data_path": "action_result.summary",
-                    "data_type": "string"
+                    "example_values": [
+                        "Revocation is already completed. The certificate \"\\VED\\Policy\\Partner Dev\\TLS\\Certificates\\Testing\\testfriendlyname2\" revocation was requested by another request or process."
+                    ]
                 },
                 {
                     "data_path": "action_result.summary.status",
@@ -1421,7 +1420,7 @@
                     "data_path": "action_result.parameter.friendly_name",
                     "data_type": "string",
                     "example_values": [
-                        "tpp.venafidemo.com"
+                        "tpp.exampledemo.com"
                     ]
                 },
                 {
@@ -1478,7 +1477,7 @@
                     "data_path": "action_result.data.*.vault_id",
                     "data_type": "string",
                     "example_values": [
-                        "d1d286f38c9e7c50c1998c0ce0974faab4c9258c"
+                        "TEST86f38c9e7c50c1998c0ce0974faab4c9TEST"
                     ],
                     "contains": [
                         "sha1",
@@ -1526,31 +1525,23 @@
         "wheel": [
             {
                 "module": "beautifulsoup4",
-                "input_file": "wheels/beautifulsoup4-4.9.1-py3-none-any.whl"
-            },
-            {
-                "module": "certifi",
-                "input_file": "wheels/certifi-2021.10.8-py2.py3-none-any.whl"
-            },
-            {
-                "module": "chardet",
-                "input_file": "wheels/chardet-3.0.4-py2.py3-none-any.whl"
-            },
-            {
-                "module": "idna",
-                "input_file": "wheels/idna-2.10-py2.py3-none-any.whl"
-            },
-            {
-                "module": "requests",
-                "input_file": "wheels/requests-2.25.0-py2.py3-none-any.whl"
+                "input_file": "wheels/py3/beautifulsoup4-4.9.1-py3-none-any.whl"
             },
             {
                 "module": "soupsieve",
-                "input_file": "wheels/soupsieve-2.3.1-py3-none-any.whl"
+                "input_file": "wheels/py3/soupsieve-2.3.2.post1-py3-none-any.whl"
+            }
+        ]
+    },
+    "pip39_dependencies": {
+        "wheel": [
+            {
+                "module": "beautifulsoup4",
+                "input_file": "wheels/py3/beautifulsoup4-4.9.1-py3-none-any.whl"
             },
             {
-                "module": "urllib3",
-                "input_file": "wheels/urllib3-1.26.8-py2.py3-none-any.whl"
+                "module": "soupsieve",
+                "input_file": "wheels/py3/soupsieve-2.4.1-py3-none-any.whl"
             }
         ]
     }
