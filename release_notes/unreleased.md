@@ -1,1 +1,3 @@
 **Unreleased**
+
+* Removed hardcoded Vault path [PAPP-32428]
