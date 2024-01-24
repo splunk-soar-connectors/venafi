@@ -11,7 +11,7 @@ Minimum Product Version: 6.0.2
 This app integrates with an instance of Venafi to perform generic and investigative actions
 
 [comment]: # " File: README.md"
-[comment]: # "  Copyright (c) 2019-2023 Splunk Inc."
+[comment]: # "  Copyright (c) 2019-2024 Splunk Inc."
 [comment]: # ""
 [comment]: # "Licensed under the Apache License, Version 2.0 (the 'License');"
 [comment]: # "you may not use this file except in compliance with the License."
