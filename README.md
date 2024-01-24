@@ -6,7 +6,7 @@ Connector Version: 2.1.0
 Product Vendor: Venafi  
 Product Name: Venafi  
 Product Version Supported (regex): ".\*"  
-Minimum Product Version: 6.0.2  
+Minimum Product Version: 6.1.1  
 
 This app integrates with an instance of Venafi to perform generic and investigative actions
 
@@ -24,7 +24,6 @@ This app integrates with an instance of Venafi to perform generic and investigat
 [comment]: # "either express or implied. See the License for the specific language governing permissions"
 [comment]: # "and limitations under the License."
 [comment]: # ""
-
 
 
 ### Configuration Variables
