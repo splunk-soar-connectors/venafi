@@ -1,6 +1,6 @@
 # File: venafi_connector.py
 #
-# Copyright (c) 2019-2023 Splunk Inc.
+# Copyright (c) 2019-2024 Splunk Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -418,10 +418,7 @@ class VenafiConnector(BaseConnector):
 
         file_name = r.headers.get('Content-Disposition', 'filename').split('"')[1]
 
-        if hasattr(Vault, 'get_vault_tmp_dir'):
-            fd, tmp_file_path = tempfile.mkstemp(dir=Vault.get_vault_tmp_dir())
-        else:
-            fd, tmp_file_path = tempfile.mkstemp(dir="/opt/phantom/vault/tmp")
+        fd, tmp_file_path = tempfile.mkstemp(dir=Vault.get_vault_tmp_dir())
         os.close(fd)
 
         with open(tmp_file_path, 'wb') as f:

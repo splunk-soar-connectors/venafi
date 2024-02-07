@@ -2,16 +2,16 @@
 # Venafi
 
 Publisher: Splunk  
-Connector Version: 2.1.0  
+Connector Version: 2.1.1  
 Product Vendor: Venafi  
 Product Name: Venafi  
 Product Version Supported (regex): ".\*"  
-Minimum Product Version: 6.0.2  
+Minimum Product Version: 6.1.1  
 
 This app integrates with an instance of Venafi to perform generic and investigative actions
 
 [comment]: # " File: README.md"
-[comment]: # "  Copyright (c) 2019-2023 Splunk Inc."
+[comment]: # "  Copyright (c) 2019-2024 Splunk Inc."
 [comment]: # ""
 [comment]: # "Licensed under the Apache License, Version 2.0 (the 'License');"
 [comment]: # "you may not use this file except in compliance with the License."
@@ -24,7 +24,6 @@ This app integrates with an instance of Venafi to perform generic and investigat
 [comment]: # "either express or implied. See the License for the specific language governing permissions"
 [comment]: # "and limitations under the License."
 [comment]: # ""
-
 
 
 ### Configuration Variables
