@@ -329,6 +329,7 @@ class VenafiConnector(BaseConnector):
         self.save_state(self._state)
         return RetVal(phantom.APP_SUCCESS, None)
 
+    @staticmethod
     def make_rest_call_wrapper(func):
         def _handle_token(self, endpoint, action_result, *args, **kwargs):
             force_new_token = True if self.get_action_identifier() == "test_connectivity" else False
