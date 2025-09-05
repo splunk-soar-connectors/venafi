@@ -16,7 +16,7 @@
     "main_module": "venafi_connector.py",
     "min_phantom_version": "6.1.1",
     "app_wizard_version": "1.0.0",
-    "python_version": "3",
+    "python_version": "3.9, 3.13",
     "fips_compliant": true,
     "latest_tested_version": [
         "Trust Protection Platform version 21.1, Tested on 24th July 2023"
@@ -1520,5 +1520,11 @@
             },
             "versions": "EQ(*)"
         }
-    ]
+    ],
+    "pip39_dependencies": {
+        "wheel": []
+    },
+    "pip313_dependencies": {
+        "wheel": []
+    }
 }

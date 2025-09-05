@@ -1,9 +1,9 @@
 # Venafi
 
-Publisher: Splunk \
-Connector Version: 2.1.2 \
-Product Vendor: Venafi \
-Product Name: Venafi \
+Publisher: Splunk <br>
+Connector Version: 2.1.2 <br>
+Product Vendor: Venafi <br>
+Product Name: Venafi <br>
 Minimum Product Version: 6.1.1
 
 This app integrates with an instance of Venafi to perform generic and investigative actions
@@ -21,19 +21,19 @@ VARIABLE | REQUIRED | TYPE | DESCRIPTION
 
 ### Supported Actions
 
-[test connectivity](#action-test-connectivity) - Validate the asset configuration for connectivity using supplied configuration \
-[list policies](#action-list-policies) - Returns a list of all policies in Venafi \
-[create certificate](#action-create-certificate) - Enrolls a certificate in Venafi \
-[list certificates](#action-list-certificates) - Returns a list of certificates in Venafi \
-[renew certificate](#action-renew-certificate) - Requests immediate renewal for an existing certificate in Venafi \
-[revoke certificate](#action-revoke-certificate) - Requests to revoke an existing certificate in Venafi \
+[test connectivity](#action-test-connectivity) - Validate the asset configuration for connectivity using supplied configuration <br>
+[list policies](#action-list-policies) - Returns a list of all policies in Venafi <br>
+[create certificate](#action-create-certificate) - Enrolls a certificate in Venafi <br>
+[list certificates](#action-list-certificates) - Returns a list of certificates in Venafi <br>
+[renew certificate](#action-renew-certificate) - Requests immediate renewal for an existing certificate in Venafi <br>
+[revoke certificate](#action-revoke-certificate) - Requests to revoke an existing certificate in Venafi <br>
 [get certificate](#action-get-certificate) - Downloads specified certificate to the vault
 
 ## action: 'test connectivity'
 
 Validate the asset configuration for connectivity using supplied configuration
 
-Type: **test** \
+Type: **test** <br>
 Read only: **True**
 
 #### Action Parameters
@@ -48,7 +48,7 @@ No Output
 
 Returns a list of all policies in Venafi
 
-Type: **investigate** \
+Type: **investigate** <br>
 Read only: **True**
 
 #### Action Parameters
@@ -77,7 +77,7 @@ summary.total_objects_successful | numeric | | 1 |
 
 Enrolls a certificate in Venafi
 
-Type: **generic** \
+Type: **generic** <br>
 Read only: **False**
 
 Either Subject or ObjectName parameter must be filled out.
@@ -149,7 +149,7 @@ summary.total_objects_successful | numeric | | 1 |
 
 Returns a list of certificates in Venafi
 
-Type: **investigate** \
+Type: **investigate** <br>
 Read only: **True**
 
 Returns certificate details and the total number of certificates that match specified search filters.
@@ -236,7 +236,7 @@ summary.total_objects_successful | numeric | | 1 |
 
 Requests immediate renewal for an existing certificate in Venafi
 
-Type: **generic** \
+Type: **generic** <br>
 Read only: **False**
 
 A renewable certificate cannot be currently processing, in error, or contain a 'Monitoring' Management Type.
@@ -267,7 +267,7 @@ summary.total_objects_successful | numeric | | 1 |
 
 Requests to revoke an existing certificate in Venafi
 
-Type: **correct** \
+Type: **correct** <br>
 Read only: **False**
 
 The caller must have write permissions to the certificate object and either the CertificateDN or the Thumbprint parameter must be provided.
@@ -305,7 +305,7 @@ summary.total_objects_successful | numeric | | 0 |
 
 Downloads specified certificate to the vault
 
-Type: **investigate** \
+Type: **investigate** <br>
 Read only: **True**
 
 #### Action Parameters
