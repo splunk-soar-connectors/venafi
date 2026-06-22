@@ -4,7 +4,7 @@ Publisher: Splunk <br>
 Connector Version: 2.1.3 <br>
 Product Vendor: Venafi <br>
 Product Name: Venafi <br>
-Minimum Product Version: 6.1.1
+Minimum Product Version: 8.6.0
 
 This app integrates with an instance of Venafi to perform generic and investigative actions
 
@@ -317,8 +317,8 @@ PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
 **friendly_name** | optional | The label or alias to use for Base64, JKS, or PKCS #12 formats. Required for the JKS format | string | |
 **include_chain** | optional | When the Format is Base64, PKCS #7, PKCS #12, or JKS, you can include the parent or root chain in the return data | boolean | |
 **include_private_key** | optional | When the Format is Base64, PKCS #12, or JKS, you can specify whether to return the private key | boolean | |
-**keystore_password** | optional | If the Format is JKS, you must set a keystore password. Use the same requirements as required for the Password parameter | string | |
-**password** | optional | If the IncludePrivateKey value is true, you must create a password. Password must be 12 characters and comprised of at least 3 of the following: uppercase alphabetic letters, lowercase alphabetic letters, numeric characters, special characters | string | |
+**keystore_password** | optional | If the Format is JKS, you must set a keystore password. Use the same requirements as required for the Password parameter | password | |
+**password** | optional | If the IncludePrivateKey value is true, you must create a password. Password must be 12 characters and comprised of at least 3 of the following: uppercase alphabetic letters, lowercase alphabetic letters, numeric characters, special characters | password | |
 **root_first_order** | optional | The order of the certificate chain to trust | boolean | |
 
 #### Action Output
@@ -331,8 +331,8 @@ action_result.parameter.format | string | | Base64 |
 action_result.parameter.friendly_name | string | | tpp.exampledemo.com |
 action_result.parameter.include_chain | boolean | | True False |
 action_result.parameter.include_private_key | boolean | | True False |
-action_result.parameter.keystore_password | string | | |
-action_result.parameter.password | string | | |
+action_result.parameter.keystore_password | password | | |
+action_result.parameter.password | password | | |
 action_result.parameter.root_first_order | boolean | | True False |
 action_result.data.\*.name | string | | pge.com.cer |
 action_result.data.\*.size | numeric | | 2074 |
@@ -346,7 +346,7 @@ ______________________________________________________________________
 
 Auto-generated Splunk SOAR Connector documentation.
 
-Copyright 2025 Splunk Inc.
+Copyright 2026 Splunk Inc.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
