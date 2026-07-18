@@ -600,6 +600,10 @@ class VenafiConnector(BaseConnector):
         action_result.add_data(response)
 
         summary = action_result.update_summary({})
+        if not isinstance(response, dict) or response.get("Success") is not True:
+            error = response.get("Error", "The server did not confirm certificate renewal") if isinstance(response, dict) else "Invalid response"
+            summary["status"] = "Failed to renew certificate"
+            return action_result.set_status(phantom.APP_ERROR, f"Failed to renew certificate. Server response: {error}")
         summary["status"] = "Successfully renewed certificate"
 
         return action_result.set_status(phantom.APP_SUCCESS)
@@ -629,6 +633,10 @@ class VenafiConnector(BaseConnector):
         action_result.add_data(response)
 
         summary = action_result.update_summary({})
+        if not isinstance(response, dict) or response.get("Success") is not True:
+            error = response.get("Error", "The server did not confirm certificate revocation") if isinstance(response, dict) else "Invalid response"
+            summary["status"] = "Failed to revoke certificate"
+            return action_result.set_status(phantom.APP_ERROR, f"Failed to revoke certificate. Server response: {error}")
         summary["status"] = "Successfully revoked certificate"
 
         return action_result.set_status(phantom.APP_SUCCESS)
