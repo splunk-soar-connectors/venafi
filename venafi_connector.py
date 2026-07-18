@@ -644,7 +644,9 @@ class VenafiConnector(BaseConnector):
     def _handle_get_certificate(self, param):
         self.save_progress(f"In action handler for: {self.get_action_identifier()}")
 
-        action_result = self.add_action_result(ActionResult(dict(param)))
+        action_result = self.add_action_result(
+            ActionResult({key: value for key, value in param.items() if key not in {"keystore_password", "password"}})
+        )
         uri = consts.VENAFI_GET_CERTIFICATE_URI
 
         # Optional Certificate filter attributes
