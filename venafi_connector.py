@@ -394,11 +394,17 @@ class VenafiConnector(BaseConnector):
             error_message = self._get_error_message_from_exception(ex)
             return RetVal(action_result.set_status(phantom.APP_ERROR, f"{error_message}"))
 
-        # If file content length is 0, meaning the file is empty, then fail with the reason
-        if not int(r.headers.get("Content-Length")):
-            return RetVal(action_result.set_status(phantom.APP_ERROR, f"{r.reason}"))
+        if r.status_code == 401:
+            return phantom.APP_ERROR, r.status_code
 
-        file_name = r.headers.get("Content-Disposition", "filename").split('"')[1]
+        if not 200 <= r.status_code < 300:
+            return RetVal(action_result.set_status(phantom.APP_ERROR, f"Certificate download failed. Status Code: {r.status_code}"))
+
+        if not r.content:
+            return RetVal(action_result.set_status(phantom.APP_ERROR, "Certificate download is empty"))
+
+        content_disposition = r.headers.get("Content-Disposition", "")
+        file_name = content_disposition.split('"')[1] if '"' in content_disposition else "certificate"
 
         fd, tmp_file_path = tempfile.mkstemp(dir=Vault.get_vault_tmp_dir())
         os.close(fd)
