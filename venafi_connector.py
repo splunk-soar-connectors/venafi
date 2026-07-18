@@ -516,6 +516,10 @@ class VenafiConnector(BaseConnector):
         action_result.add_data(response)
 
         summary = action_result.update_summary({})
+        if not isinstance(response, dict) or response.get("Error") or not response.get("CertificateDN"):
+            error = response.get("Error", "The server did not return a certificate DN") if isinstance(response, dict) else "Invalid response"
+            summary["status"] = "Failed to create certificate"
+            return action_result.set_status(phantom.APP_ERROR, f"Failed to create certificate. Server response: {error}")
         summary["status"] = "Successfully created certificate"
 
         return action_result.set_status(phantom.APP_SUCCESS)
