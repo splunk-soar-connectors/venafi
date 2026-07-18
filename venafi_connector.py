@@ -438,7 +438,7 @@ class VenafiConnector(BaseConnector):
         # generate api key
         uri = consts.VENAFI_VERIFY_TOKEN_URI
         # make rest call
-        ret_val, response = self._make_rest_call(uri, action_result, params=None, method="get")
+        ret_val, _response = self._make_rest_call(uri, action_result, params=None, method="get")
         if phantom.is_fail(ret_val):
             self.debug_print("Removing old tokens")
             self.remove_tokens()
@@ -634,7 +634,9 @@ class VenafiConnector(BaseConnector):
 
         summary = action_result.update_summary({})
         if not isinstance(response, dict) or response.get("Success") is not True:
-            error = response.get("Error", "The server did not confirm certificate revocation") if isinstance(response, dict) else "Invalid response"
+            error = (
+                response.get("Error", "The server did not confirm certificate revocation") if isinstance(response, dict) else "Invalid response"
+            )
             summary["status"] = "Failed to revoke certificate"
             return action_result.set_status(phantom.APP_ERROR, f"Failed to revoke certificate. Server response: {error}")
         summary["status"] = "Successfully revoked certificate"

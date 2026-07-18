@@ -331,8 +331,6 @@ action_result.parameter.format | string | | Base64 |
 action_result.parameter.friendly_name | string | | tpp.exampledemo.com |
 action_result.parameter.include_chain | boolean | | True False |
 action_result.parameter.include_private_key | boolean | | True False |
-action_result.parameter.keystore_password | password | | |
-action_result.parameter.password | password | | |
 action_result.parameter.root_first_order | boolean | | True False |
 action_result.data.\*.name | string | | pge.com.cer |
 action_result.data.\*.size | numeric | | 2074 |
@@ -341,6 +339,8 @@ action_result.summary.status | string | | Successfully retrieved certificate and
 action_result.message | string | | Status: Successfully retrieved certificate and downloaded it to vault |
 summary.total_objects | numeric | | 1 |
 summary.total_objects_successful | numeric | | 1 |
+action_result.parameter.keystore_password | password | | |
+action_result.parameter.password | password | | |
 
 ______________________________________________________________________
 
