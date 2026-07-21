@@ -388,42 +388,59 @@ class VenafiConnector(BaseConnector):
         kwargs["headers"] = {"Content-Type": "application/json", "Authorization": f"Bearer {self._access_token}"}
 
         url = f"{self._base_url}{endpoint}"
+        r = None
+        tmp_file_path = None
         try:
-            r = requests.get(url, timeout=consts.VENAFI_DEFAULT_TIMEOUT, **kwargs)
+            r = requests.get(url, stream=True, timeout=consts.VENAFI_DEFAULT_TIMEOUT, **kwargs)
+
+            if r.status_code == 401:
+                return phantom.APP_ERROR, r.status_code
+
+            if not 200 <= r.status_code < 300:
+                return RetVal(action_result.set_status(phantom.APP_ERROR, f"Certificate download failed. Status Code: {r.status_code}"))
+
+            content_disposition = r.headers.get("Content-Disposition", "")
+            file_name = content_disposition.split('"')[1] if '"' in content_disposition else "certificate"
+
+            fd, tmp_file_path = tempfile.mkstemp(dir=Vault.get_vault_tmp_dir())
+            os.close(fd)
+            bytes_written = 0
+            with open(tmp_file_path, "wb") as f:
+                for chunk in r.iter_content(chunk_size=consts.VENAFI_DOWNLOAD_CHUNK_SIZE):
+                    if not chunk:
+                        continue
+                    bytes_written += len(chunk)
+                    f.write(chunk)
+
+            if not bytes_written:
+                return RetVal(action_result.set_status(phantom.APP_ERROR, "Certificate download is empty"))
+
+            success, msg, vault_id = ph_rules.vault_add(
+                container=self.get_container_id(),
+                file_location=tmp_file_path,
+                file_name=file_name,
+            )
+
+            if not success:
+                return RetVal(action_result.set_status(phantom.APP_ERROR, f"Certificate download was rejected by the SOAR vault: {msg}"))
+
+            vault_info = self._get_vault_info(vault_id)
+            if not vault_info:
+                return RetVal(action_result.set_status(phantom.APP_ERROR, f"Failed to find vault entry {vault_id}"))
+
+            action_result.add_data(
+                {phantom.APP_JSON_VAULT_ID: vault_id, phantom.APP_JSON_NAME: file_name, phantom.APP_JSON_SIZE: vault_info["size"]}
+            )
+            self.debug_print("Successfully added file to the vault")
+            return RetVal(action_result.set_status(phantom.APP_SUCCESS))
         except Exception as ex:
             error_message = self._get_error_message_from_exception(ex)
             return RetVal(action_result.set_status(phantom.APP_ERROR, f"{error_message}"))
-
-        # If file content length is 0, meaning the file is empty, then fail with the reason
-        if not int(r.headers.get("Content-Length")):
-            return RetVal(action_result.set_status(phantom.APP_ERROR, f"{r.reason}"))
-
-        file_name = r.headers.get("Content-Disposition", "filename").split('"')[1]
-
-        fd, tmp_file_path = tempfile.mkstemp(dir=Vault.get_vault_tmp_dir())
-        os.close(fd)
-
-        with open(tmp_file_path, "wb") as f:
-            f.write(r.content)
-
-        success, msg, vault_id = ph_rules.vault_add(
-            container=self.get_container_id(),
-            file_location=tmp_file_path,
-            file_name=file_name,
-        )
-
-        if not success:
-            return RetVal(action_result.set_status(phantom.APP_ERROR, f"Error adding file to the vault, Error: {msg}"))
-
-        vault_info = self._get_vault_info(vault_id)
-        if not vault_info:
-            return RetVal(action_result.set_status(phantom.APP_ERROR, f"Failed to find vault entry {vault_id}"))
-
-        action_result.add_data(
-            {phantom.APP_JSON_VAULT_ID: vault_id, phantom.APP_JSON_NAME: file_name, phantom.APP_JSON_SIZE: vault_info["size"]}
-        )
-        self.debug_print("Successfully added file to the vault")
-        return RetVal(action_result.set_status(phantom.APP_SUCCESS))
+        finally:
+            if r is not None:
+                r.close()
+            if tmp_file_path and os.path.exists(tmp_file_path):
+                os.unlink(tmp_file_path)
 
     def _handle_test_connectivity(self, param):
         action_result = self.add_action_result(ActionResult(dict(param)))
@@ -432,7 +449,7 @@ class VenafiConnector(BaseConnector):
         # generate api key
         uri = consts.VENAFI_VERIFY_TOKEN_URI
         # make rest call
-        ret_val, response = self._make_rest_call(uri, action_result, params=None, method="get")
+        ret_val, _response = self._make_rest_call(uri, action_result, params=None, method="get")
         if phantom.is_fail(ret_val):
             self.debug_print("Removing old tokens")
             self.remove_tokens()
@@ -516,6 +533,10 @@ class VenafiConnector(BaseConnector):
         action_result.add_data(response)
 
         summary = action_result.update_summary({})
+        if not isinstance(response, dict) or response.get("Error") or not response.get("CertificateDN"):
+            error = response.get("Error", "The server did not return a certificate DN") if isinstance(response, dict) else "Invalid response"
+            summary["status"] = "Failed to create certificate"
+            return action_result.set_status(phantom.APP_ERROR, f"Failed to create certificate. Server response: {error}")
         summary["status"] = "Successfully created certificate"
 
         return action_result.set_status(phantom.APP_SUCCESS)
@@ -590,6 +611,10 @@ class VenafiConnector(BaseConnector):
         action_result.add_data(response)
 
         summary = action_result.update_summary({})
+        if not isinstance(response, dict) or response.get("Success") is not True:
+            error = response.get("Error", "The server did not confirm certificate renewal") if isinstance(response, dict) else "Invalid response"
+            summary["status"] = "Failed to renew certificate"
+            return action_result.set_status(phantom.APP_ERROR, f"Failed to renew certificate. Server response: {error}")
         summary["status"] = "Successfully renewed certificate"
 
         return action_result.set_status(phantom.APP_SUCCESS)
@@ -619,6 +644,12 @@ class VenafiConnector(BaseConnector):
         action_result.add_data(response)
 
         summary = action_result.update_summary({})
+        if not isinstance(response, dict) or response.get("Success") is not True:
+            error = (
+                response.get("Error", "The server did not confirm certificate revocation") if isinstance(response, dict) else "Invalid response"
+            )
+            summary["status"] = "Failed to revoke certificate"
+            return action_result.set_status(phantom.APP_ERROR, f"Failed to revoke certificate. Server response: {error}")
         summary["status"] = "Successfully revoked certificate"
 
         return action_result.set_status(phantom.APP_SUCCESS)
@@ -626,7 +657,9 @@ class VenafiConnector(BaseConnector):
     def _handle_get_certificate(self, param):
         self.save_progress(f"In action handler for: {self.get_action_identifier()}")
 
-        action_result = self.add_action_result(ActionResult(dict(param)))
+        action_result = self.add_action_result(
+            ActionResult({key: value for key, value in param.items() if key not in {"keystore_password", "password"}})
+        )
         uri = consts.VENAFI_GET_CERTIFICATE_URI
 
         # Optional Certificate filter attributes

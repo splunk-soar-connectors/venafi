@@ -1,1 +1,7 @@
 **Unreleased**
+
+* Stream certificate downloads to a temporary file before adding them to the SOAR vault.
+* Report an error when Venafi does not confirm certificate enrollment.
+* Reject unsuccessful certificate downloads before adding them to the SOAR vault.
+* Report an error when Venafi does not confirm certificate renewal or revocation.
+* Keep certificate-export passwords out of action results.

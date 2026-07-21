@@ -42,6 +42,7 @@ VENAFI_ERROR_MESSAGE_UNAVAILABLE = "Error message unavailable. Please check the 
 VENAFI_INVALID_REFRESH_TOKEN = "refresh token is invalid"
 
 VENAFI_DEFAULT_TIMEOUT = 30
+VENAFI_DOWNLOAD_CHUNK_SIZE = 64 * 1024
 VENAFI_LIST_CERTIFICATES_PARAMS = {
     "country": "C",
     "common_name": "CN",
