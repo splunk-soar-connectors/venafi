@@ -399,15 +399,6 @@ class VenafiConnector(BaseConnector):
             if not 200 <= r.status_code < 300:
                 return RetVal(action_result.set_status(phantom.APP_ERROR, f"Certificate download failed. Status Code: {r.status_code}"))
 
-            content_length = r.headers.get("Content-Length")
-            if content_length is not None:
-                try:
-                    content_length = int(content_length)
-                except ValueError:
-                    return RetVal(action_result.set_status(phantom.APP_ERROR, "Certificate download has an invalid Content-Length"))
-                if content_length < 0 or content_length > consts.VENAFI_MAX_CERTIFICATE_DOWNLOAD_SIZE:
-                    return RetVal(action_result.set_status(phantom.APP_ERROR, "Certificate download exceeds the maximum allowed size"))
-
             content_disposition = r.headers.get("Content-Disposition", "")
             file_name = content_disposition.split('"')[1] if '"' in content_disposition else "certificate"
 
@@ -419,14 +410,10 @@ class VenafiConnector(BaseConnector):
                     if not chunk:
                         continue
                     bytes_written += len(chunk)
-                    if bytes_written > consts.VENAFI_MAX_CERTIFICATE_DOWNLOAD_SIZE:
-                        return RetVal(action_result.set_status(phantom.APP_ERROR, "Certificate download exceeds the maximum allowed size"))
                     f.write(chunk)
 
             if not bytes_written:
                 return RetVal(action_result.set_status(phantom.APP_ERROR, "Certificate download is empty"))
-            if content_length is not None and bytes_written != content_length:
-                return RetVal(action_result.set_status(phantom.APP_ERROR, "Certificate download does not match Content-Length"))
 
             success, msg, vault_id = ph_rules.vault_add(
                 container=self.get_container_id(),
@@ -435,7 +422,7 @@ class VenafiConnector(BaseConnector):
             )
 
             if not success:
-                return RetVal(action_result.set_status(phantom.APP_ERROR, f"Error adding file to the vault, Error: {msg}"))
+                return RetVal(action_result.set_status(phantom.APP_ERROR, f"Certificate download was rejected by the SOAR vault: {msg}"))
 
             vault_info = self._get_vault_info(vault_id)
             if not vault_info:
