@@ -388,48 +388,72 @@ class VenafiConnector(BaseConnector):
         kwargs["headers"] = {"Content-Type": "application/json", "Authorization": f"Bearer {self._access_token}"}
 
         url = f"{self._base_url}{endpoint}"
+        r = None
+        tmp_file_path = None
         try:
-            r = requests.get(url, timeout=consts.VENAFI_DEFAULT_TIMEOUT, **kwargs)
+            r = requests.get(url, stream=True, timeout=consts.VENAFI_DEFAULT_TIMEOUT, **kwargs)
+
+            if r.status_code == 401:
+                return phantom.APP_ERROR, r.status_code
+
+            if not 200 <= r.status_code < 300:
+                return RetVal(action_result.set_status(phantom.APP_ERROR, f"Certificate download failed. Status Code: {r.status_code}"))
+
+            content_length = r.headers.get("Content-Length")
+            if content_length is not None:
+                try:
+                    content_length = int(content_length)
+                except ValueError:
+                    return RetVal(action_result.set_status(phantom.APP_ERROR, "Certificate download has an invalid Content-Length"))
+                if content_length < 0 or content_length > consts.VENAFI_MAX_CERTIFICATE_DOWNLOAD_SIZE:
+                    return RetVal(action_result.set_status(phantom.APP_ERROR, "Certificate download exceeds the maximum allowed size"))
+
+            content_disposition = r.headers.get("Content-Disposition", "")
+            file_name = content_disposition.split('"')[1] if '"' in content_disposition else "certificate"
+
+            fd, tmp_file_path = tempfile.mkstemp(dir=Vault.get_vault_tmp_dir())
+            os.close(fd)
+            bytes_written = 0
+            with open(tmp_file_path, "wb") as f:
+                for chunk in r.iter_content(chunk_size=consts.VENAFI_DOWNLOAD_CHUNK_SIZE):
+                    if not chunk:
+                        continue
+                    bytes_written += len(chunk)
+                    if bytes_written > consts.VENAFI_MAX_CERTIFICATE_DOWNLOAD_SIZE:
+                        return RetVal(action_result.set_status(phantom.APP_ERROR, "Certificate download exceeds the maximum allowed size"))
+                    f.write(chunk)
+
+            if not bytes_written:
+                return RetVal(action_result.set_status(phantom.APP_ERROR, "Certificate download is empty"))
+            if content_length is not None and bytes_written != content_length:
+                return RetVal(action_result.set_status(phantom.APP_ERROR, "Certificate download does not match Content-Length"))
+
+            success, msg, vault_id = ph_rules.vault_add(
+                container=self.get_container_id(),
+                file_location=tmp_file_path,
+                file_name=file_name,
+            )
+
+            if not success:
+                return RetVal(action_result.set_status(phantom.APP_ERROR, f"Error adding file to the vault, Error: {msg}"))
+
+            vault_info = self._get_vault_info(vault_id)
+            if not vault_info:
+                return RetVal(action_result.set_status(phantom.APP_ERROR, f"Failed to find vault entry {vault_id}"))
+
+            action_result.add_data(
+                {phantom.APP_JSON_VAULT_ID: vault_id, phantom.APP_JSON_NAME: file_name, phantom.APP_JSON_SIZE: vault_info["size"]}
+            )
+            self.debug_print("Successfully added file to the vault")
+            return RetVal(action_result.set_status(phantom.APP_SUCCESS))
         except Exception as ex:
             error_message = self._get_error_message_from_exception(ex)
             return RetVal(action_result.set_status(phantom.APP_ERROR, f"{error_message}"))
-
-        if r.status_code == 401:
-            return phantom.APP_ERROR, r.status_code
-
-        if not 200 <= r.status_code < 300:
-            return RetVal(action_result.set_status(phantom.APP_ERROR, f"Certificate download failed. Status Code: {r.status_code}"))
-
-        if not r.content:
-            return RetVal(action_result.set_status(phantom.APP_ERROR, "Certificate download is empty"))
-
-        content_disposition = r.headers.get("Content-Disposition", "")
-        file_name = content_disposition.split('"')[1] if '"' in content_disposition else "certificate"
-
-        fd, tmp_file_path = tempfile.mkstemp(dir=Vault.get_vault_tmp_dir())
-        os.close(fd)
-
-        with open(tmp_file_path, "wb") as f:
-            f.write(r.content)
-
-        success, msg, vault_id = ph_rules.vault_add(
-            container=self.get_container_id(),
-            file_location=tmp_file_path,
-            file_name=file_name,
-        )
-
-        if not success:
-            return RetVal(action_result.set_status(phantom.APP_ERROR, f"Error adding file to the vault, Error: {msg}"))
-
-        vault_info = self._get_vault_info(vault_id)
-        if not vault_info:
-            return RetVal(action_result.set_status(phantom.APP_ERROR, f"Failed to find vault entry {vault_id}"))
-
-        action_result.add_data(
-            {phantom.APP_JSON_VAULT_ID: vault_id, phantom.APP_JSON_NAME: file_name, phantom.APP_JSON_SIZE: vault_info["size"]}
-        )
-        self.debug_print("Successfully added file to the vault")
-        return RetVal(action_result.set_status(phantom.APP_SUCCESS))
+        finally:
+            if r is not None:
+                r.close()
+            if tmp_file_path and os.path.exists(tmp_file_path):
+                os.unlink(tmp_file_path)
 
     def _handle_test_connectivity(self, param):
         action_result = self.add_action_result(ActionResult(dict(param)))
