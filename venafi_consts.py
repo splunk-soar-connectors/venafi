@@ -19,6 +19,9 @@ VENAFI_STATE_REFRESH_TOKEN = "refresh_token"
 VENAFI_STATE_EXPIRES = "expires"
 VENAFI_STATE_IS_ENCRYPTED = "is_encrypted"
 
+# OAuth
+VENAFI_DEFAULT_SCOPE = "certificate:discover,delete,manage,revoke;configuration"
+
 # APIs
 VENAFI_FETCH_ACCESS_TOKEN_URI = "/vedauth/Authorize/Token"
 VENAFI_FETCH_TOKEN_URI = "/vedauth/authorize/oauth"

@@ -10,8 +10,8 @@
     "product_version_regex": ".*",
     "publisher": "Splunk",
     "license": "Copyright (c) 2019-2026 Splunk Inc.",
-    "app_version": "2.1.5",
-    "utctime_updated": "2026-07-21T15:33:53.581576Z",
+    "app_version": "2.2.0",
+    "utctime_updated": "2026-07-29T00:00:00.000000Z",
     "package_name": "phantom_venafi",
     "main_module": "venafi_connector.py",
     "min_phantom_version": "8.6.0",
@@ -50,6 +50,12 @@
             "data_type": "string",
             "required": true,
             "order": 4
+        },
+        "oauth_scope": {
+            "description": "Optional. OAuth scope for token requests. Leave blank to use the default scope (certificate:discover,delete,manage,revoke;configuration)",
+            "data_type": "string",
+            "required": false,
+            "order": 5
         }
     },
     "actions": [
