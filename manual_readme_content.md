@@ -1,6 +1,6 @@
 ## Creating the Venafi API Application
 
-Before configuring an asset, an API Application (OAuth integration) must exist in your Venafi instance. You can create one with the request below. Replace the `ApplicationId` and `Scope`/`MaxScope` values so they match your organization's security policy. Include this configuration in your internal documentation so it can be imported into other Venafi instances with the same settings:
+Before configuring an asset, an API Application (OAuth integration) must exist in your Venafi instance. This is normally set up by an administrator in the Aperture UI (Defining the OAuth API Application Integration); the equivalent Web SDK request is shown below and requires an administrator bearer token. Replace the `ApplicationId` and `Scope`/`MaxScope` values so they match your organization's security policy. Include this configuration in your internal documentation so it can be imported into other Venafi instances with the same settings:
 
 **POST** `/vedsdk/oauth/CreateApplication`
 
@@ -16,7 +16,7 @@ Before configuring an asset, an API Application (OAuth integration) must exist i
 }
 ```
 
-The `ApplicationId` you choose becomes the **client_id** value in the asset configuration, and the `Scope`/`MaxScope` defines the maximum set of permissions the integration is allowed to request.
+The `ApplicationId` you choose becomes the **client_id** value in the asset configuration. `MaxScope` defines the maximum permissions the integration can ever request, and `Scope` is the default scope granted.
 
 ## OAuth Scope
 
