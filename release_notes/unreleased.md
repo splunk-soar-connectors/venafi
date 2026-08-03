@@ -1,3 +1,1 @@
 **Unreleased**
-
-* Add an optional asset-level "OAuth Scope" setting. [ESPM-5451]

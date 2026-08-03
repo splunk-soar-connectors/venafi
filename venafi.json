@@ -11,7 +11,7 @@
     "publisher": "Splunk",
     "license": "Copyright (c) 2019-2026 Splunk Inc.",
     "app_version": "2.2.0",
-    "utctime_updated": "2026-07-29T00:00:00.000000Z",
+    "utctime_updated": "2026-08-03T09:12:51.435935Z",
     "package_name": "phantom_venafi",
     "main_module": "venafi_connector.py",
     "min_phantom_version": "8.6.0",
