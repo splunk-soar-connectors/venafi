@@ -50,6 +50,7 @@ class VenafiConnector(BaseConnector):
         self._username = None
         self._password = None
         self._client_id = None
+        self._scope = None
         self._access_token = None
         self._refresh_token = None
         self._asset_id = None
@@ -76,6 +77,7 @@ class VenafiConnector(BaseConnector):
         self._username = config["username"].strip()
         self._password = config["password"].strip()
         self._client_id = config["client_id"].strip()
+        self._scope = config.get("oauth_scope", "").strip() or consts.VENAFI_DEFAULT_SCOPE
         self._access_token = self._state.get(consts.VENAFI_STATE_ACCESS_TOKEN, {}).get(consts.VENAFI_STATE_ACCESS_TOKEN)
         self._refresh_token = self._state.get(consts.VENAFI_STATE_ACCESS_TOKEN, {}).get(consts.VENAFI_STATE_REFRESH_TOKEN)
         return phantom.APP_SUCCESS
@@ -284,13 +286,13 @@ class VenafiConnector(BaseConnector):
         if force_new_token or (not self._access_token and not self._refresh_token):
             self.debug_print("Generating tokens forcefully")
             uri = consts.VENAFI_FETCH_TOKEN_URI
-            # current set of actions supported by this app only requires these scopes.
-            # scopes will need to be changed as the requirements of actions supported by app
+            # Scope defaults to consts.VENAFI_DEFAULT_SCOPE but can be overridden per-asset
+            # via the optional "oauth_scope" configuration setting.
             body = {
                 "username": self._username,
                 "password": self._password,
                 "client_id": self._client_id,
-                "scope": "certificate:discover,delete,manage,revoke;configuration",
+                "scope": self._scope,
             }
         elif refresh_token or (not self._access_token and self._refresh_token):
             self.debug_print("Generating token using refresh token")
