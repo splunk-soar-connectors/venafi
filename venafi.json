@@ -52,9 +52,10 @@
             "order": 4
         },
         "oauth_scope": {
-            "description": "Optional. OAuth scope for token requests. Leave blank to use the default scope (certificate:discover,delete,manage,revoke;configuration)",
+            "description": "OAuth scope for token requests. Run Test Connectivity after changing this value on an existing asset to refresh cached tokens.",
             "data_type": "string",
             "required": false,
+            "default": "certificate:discover,delete,manage,revoke;configuration",
             "order": 5
         }
     },

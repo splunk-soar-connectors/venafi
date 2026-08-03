@@ -1,9 +1,9 @@
 ## OAuth Scope
 
-The optional **OAuth Scope** asset setting controls the scope requested when the app obtains an OAuth token.
+The **OAuth Scope** asset setting controls the scope requested when the app obtains an OAuth token. The field is pre-populated with the default scope (`certificate:discover,delete,manage,revoke;configuration`), so existing assets and actions continue to work without reconfiguration.
 
-- Leave it **blank** to use the default scope (`certificate:discover,delete,manage,revoke;configuration`). Existing assets and actions continue to work without reconfiguration.
 - Set a custom value to comply with your security policy. The value must be allowed by the Venafi API Application Integration's maximum scope; otherwise the token request can fail with an `invalid_scope` error.
+- After changing this value on an existing asset, run Test Connectivity to refresh the cached token.
 
 ## Base URL
 
