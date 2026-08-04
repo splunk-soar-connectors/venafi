@@ -80,6 +80,11 @@ class VenafiConnector(BaseConnector):
         self._scope = config.get("oauth_scope", "").strip() or consts.VENAFI_DEFAULT_SCOPE
         self._access_token = self._state.get(consts.VENAFI_STATE_ACCESS_TOKEN, {}).get(consts.VENAFI_STATE_ACCESS_TOKEN)
         self._refresh_token = self._state.get(consts.VENAFI_STATE_ACCESS_TOKEN, {}).get(consts.VENAFI_STATE_REFRESH_TOKEN)
+        if (self._access_token or self._refresh_token) and self._state.get(consts.VENAFI_STATE_TOKEN_BASE_URL) != self._base_url:
+            self.debug_print("Asset base URL changed since the stored tokens were issued; discarding stored tokens")
+            self._access_token = None
+            self._refresh_token = None
+            self.remove_tokens()
         return phantom.APP_SUCCESS
 
     def encrypt_state(self):
@@ -127,8 +132,14 @@ class VenafiConnector(BaseConnector):
         self._state[consts.VENAFI_STATE_IS_ENCRYPTED] = False
 
     def remove_tokens(self):
+        state_changed = False
         if self._state.get(consts.VENAFI_STATE_ACCESS_TOKEN):
             self._state.pop(consts.VENAFI_STATE_ACCESS_TOKEN)
+            state_changed = True
+        if self._state.get(consts.VENAFI_STATE_TOKEN_BASE_URL):
+            self._state.pop(consts.VENAFI_STATE_TOKEN_BASE_URL)
+            state_changed = True
+        if state_changed:
             self.save_state(self._state)
 
     @staticmethod
@@ -339,6 +350,7 @@ class VenafiConnector(BaseConnector):
             )
 
         self.save_progress("Successfully generated Access Token")
+        self._state[consts.VENAFI_STATE_TOKEN_BASE_URL] = self._base_url
         self._state[consts.VENAFI_STATE_ACCESS_TOKEN] = resp_json
         self._access_token = resp_json[consts.VENAFI_STATE_ACCESS_TOKEN]
         self._refresh_token = resp_json.get(consts.VENAFI_STATE_REFRESH_TOKEN)
