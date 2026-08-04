@@ -239,7 +239,7 @@ class VenafiConnector(BaseConnector):
         if 200 <= r.status_code < 399:
             return RetVal(phantom.APP_SUCCESS, resp_json)
 
-        if "error_description" in resp_json and "error" in resp_json:
+        if isinstance(resp_json, dict) and "error_description" in resp_json and "error" in resp_json:
             message = resp_json["error_description"]
         # You should process the error returned in the json
         else:
