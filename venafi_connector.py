@@ -322,11 +322,26 @@ class VenafiConnector(BaseConnector):
             else:
                 return self._process_response(response, action_result)
 
-        resp_json = response.json()
+        try:
+            resp_json = response.json()
+        except Exception as ex:
+            error_message = self._get_error_message_from_exception(ex)
+            return RetVal(
+                action_result.set_status(phantom.APP_ERROR, f"Unable to parse JSON response from token endpoint. {error_message}"), None
+            )
+
+        if not isinstance(resp_json, dict) or not resp_json.get(consts.VENAFI_STATE_ACCESS_TOKEN):
+            return RetVal(
+                action_result.set_status(
+                    phantom.APP_ERROR, "Unexpected response from token endpoint: expected a JSON object containing an access token"
+                ),
+                None,
+            )
+
         self.save_progress("Successfully generated Access Token")
         self._state[consts.VENAFI_STATE_ACCESS_TOKEN] = resp_json
         self._access_token = resp_json[consts.VENAFI_STATE_ACCESS_TOKEN]
-        self._refresh_token = resp_json[consts.VENAFI_STATE_REFRESH_TOKEN]
+        self._refresh_token = resp_json.get(consts.VENAFI_STATE_REFRESH_TOKEN)
         self.encrypt_state()
         self.save_state(self._state)
         return RetVal(phantom.APP_SUCCESS, None)
