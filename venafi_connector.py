@@ -583,11 +583,16 @@ class VenafiConnector(BaseConnector):
         if phantom.is_fail(ret_val):
             return ret_val
 
-        for policy in response["Objects"]:
+        objects = response.get("Objects") if isinstance(response, dict) else None
+        if not isinstance(objects, list):
+            error = response.get("Error", "The server did not return an Objects list") if isinstance(response, dict) else "Invalid response"
+            return action_result.set_status(phantom.APP_ERROR, f"Failed to list policies. Server response: {error}")
+
+        for policy in objects:
             action_result.add_data(policy)
 
         summary = action_result.update_summary({})
-        summary["num_policies"] = len(response["Objects"])
+        summary["num_policies"] = len(objects)
 
         return action_result.set_status(phantom.APP_SUCCESS)
 
@@ -616,11 +621,16 @@ class VenafiConnector(BaseConnector):
         if phantom.is_fail(ret_val):
             return ret_val
 
-        for certificate in response["Certificates"]:
+        certificates = response.get("Certificates") if isinstance(response, dict) else None
+        if not isinstance(certificates, list):
+            error = response.get("Error", "The server did not return a Certificates list") if isinstance(response, dict) else "Invalid response"
+            return action_result.set_status(phantom.APP_ERROR, f"Failed to list certificates. Server response: {error}")
+
+        for certificate in certificates:
             action_result.add_data(certificate)
 
         summary = action_result.update_summary({})
-        summary["num_certificates"] = len(response["Certificates"])
+        summary["num_certificates"] = len(certificates)
 
         return action_result.set_status(phantom.APP_SUCCESS)
 
