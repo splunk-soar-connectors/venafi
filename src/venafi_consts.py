@@ -1,5 +1,3 @@
-# File: venafi_consts.py
-#
 # Copyright (c) 2019-2026 Splunk Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,39 +11,30 @@
 # either express or implied. See the License for the specific language governing permissions
 # and limitations under the License.
 
-# state file keys
-VENAFI_STATE_ACCESS_TOKEN = "access_token"
-VENAFI_STATE_REFRESH_TOKEN = "refresh_token"
-VENAFI_STATE_EXPIRES = "expires"
-VENAFI_STATE_IS_ENCRYPTED = "is_encrypted"
-
 # OAuth
 VENAFI_DEFAULT_SCOPE = "certificate:discover,delete,manage,revoke;configuration"
 
 # APIs
-VENAFI_FETCH_ACCESS_TOKEN_URI = "/vedauth/Authorize/Token"
-VENAFI_FETCH_TOKEN_URI = "/vedauth/authorize/oauth"
+VENAFI_FETCH_ACCESS_TOKEN_URI = "/vedauth/Authorize/Token"  # noqa: S105
+VENAFI_FETCH_TOKEN_URI = "/vedauth/authorize/oauth"  # noqa: S105
 VENAFI_LIST_CERTIFICATES_URI = "/vedsdk/certificates"
 VENAFI_RENEW_CERTIFICATE_URI = "/vedsdk/Certificates/Renew"
-VENAFI_VERIFY_TOKEN_URI = "/vedauth/Authorize/Verify"
+VENAFI_VERIFY_TOKEN_URI = "/vedauth/Authorize/Verify"  # noqa: S105
 VENAFI_CREATE_CERTIFICATE_URI = "/vedsdk/Certificates/Request"
 VENAFI_LIST_POLICIES_URI = "/vedsdk/Config/FindObjectsOfClass"
 VENAFI_REVOKE_CERTIFICATE_URI = "/vedsdk/Certificates/Revoke"
 VENAFI_GET_CERTIFICATE_URI = "/vedsdk/Certificates/Retrieve"
 
-# messages
+# Messages
 TEST_CONNECTIVITY_FAILED = "Test Connectivity Failed"
 TEST_CONNECTIVITY_SUCCESS = "Test Connectivity Passed"
-VENAFI_VALID_INTEGER_MESSAGE = "Please provide a valid integer value in the {param}"
-VENAFI_NON_NEGATIVE_INTEGER_MESSAGE = "Please provide a valid non-negative integer value in the {param}"
-VENAFI_POSITIVE_INTEGER_MESSAGE = "Please provide a valid non-zero positive integer value in the {param}"
-VENAFI_ENCRYPTION_ERROR = "Error occurred while encrypting the state file"
-VENAFI_DECRYPTION_ERROR = "Error occurred while decrypting the state file"
-VENAFI_ERROR_MESSAGE_UNAVAILABLE = "Error message unavailable. Please check the asset configuration and|or action parameters"
-VENAFI_INVALID_REFRESH_TOKEN = "refresh token is invalid"
+VENAFI_INVALID_API_URL = "Invalid Venafi API URL"
 
+# Behavior
 VENAFI_DEFAULT_TIMEOUT = 30
 VENAFI_DOWNLOAD_CHUNK_SIZE = 64 * 1024
+
+# Mapping of list-certificates action params -> Venafi query keys
 VENAFI_LIST_CERTIFICATES_PARAMS = {
     "country": "C",
     "common_name": "CN",
@@ -70,6 +59,8 @@ VENAFI_LIST_CERTIFICATES_PARAMS = {
     "valid_to_greater": "ValidToGreater",
     "valid_to_less": "ValidToLess",
 }
+
+# Mapping of get-certificate action params -> Venafi query keys
 VENAFI_GET_CERTIFICATE_PARAMS = {
     "certificate_dn": "CertificateDN",
     "friendly_name": "FriendlyName",
