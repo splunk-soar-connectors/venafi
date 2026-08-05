@@ -1,0 +1,180 @@
+diff --git a/README.md b/README.md
+index 8ad01da..6048374 100644
+--- a/README.md
++++ b/README.md
+@@ -1,13 +1,44 @@
+ # Venafi
+ 
+ Publisher: Splunk <br>
+-Connector Version: 2.1.5 <br>
++Connector Version: 2.2.0 <br>
+ Product Vendor: Venafi <br>
+ Product Name: Venafi <br>
+ Minimum Product Version: 8.6.0
+ 
+ This app integrates with an instance of Venafi to perform generic and investigative actions
+ 
++## Creating the Venafi API Application
++
++Before configuring an asset, an API Application (OAuth integration) must exist in your Venafi instance. You can create one with the request below. Replace the `ApplicationId` and `Scope`/`MaxScope` values so they match your organization's security policy. Include this configuration in your internal documentation so it can be imported into other Venafi instances with the same settings:
++
++**POST** `/vedsdk/oauth/CreateApplication`
++
++```json
++{
++    "ApplicationId": "<your-application-id>",
++    "Scope": "certificate:approve,delete,discover,manage,revoke;codesign:delete,manage;configuration:delete,manage;ssh:approve,delete,discover,manage;statistics",
++    "MaxScope": "certificate:approve,delete,discover,manage,revoke;codesign:delete,manage;configuration:delete,manage;ssh:approve,delete,discover,manage;statistics",
++    "Name": "Splunk SOAR",
++    "Vendor": "Splunk",
++    "Description": "Splunk SOAR",
++    "Url": ""
++}
++```
++
++The `ApplicationId` you choose becomes the **client_id** value in the asset configuration, and the `Scope`/`MaxScope` defines the maximum set of permissions the integration is allowed to request.
++
++## OAuth Scope
++
++The optional **OAuth Scope** asset setting controls the scope requested when the app obtains an OAuth token.
++
++- Leave it **blank** to use the default scope (`certificate:discover,delete,manage,revoke;configuration`). Existing assets and actions continue to work without reconfiguration.
++- Set a custom value to comply with a stricter security policy. The value must stay within the API Application's `MaxScope`; requesting anything beyond `MaxScope` results in a reduced or rejected token.
++
++## Base URL
++
++The **base_url** must be the bare Venafi host, for example `https://your-venafi-host`. Do not include an API path such as `/vedsdk`; the connector appends the required API paths automatically. Including a path causes token requests to fail with an "Invalid Venafi API URL" error.
++
+ ### Configuration variables
+ 
+ This table lists the configuration variables required to operate Venafi. These variables are specified when configuring a Venafi asset in Splunk SOAR.
+@@ -18,6 +49,7 @@ VARIABLE | REQUIRED | TYPE | DESCRIPTION
+ **username** | required | string | Venafi API Username to authenticate with |
+ **password** | required | password | Venafi API Password to authenticate with |
+ **client_id** | required | string | API Application Integration application ID |
++**oauth_scope** | optional | string | Optional. OAuth scope for token requests. Leave blank to use the default scope (certificate:discover,delete,manage,revoke;configuration) |
+ 
+ ### Supported Actions
+ 
+diff --git a/manual_readme_content.md b/manual_readme_content.md
+index e69de29..5754e0f 100644
+--- a/manual_readme_content.md
++++ b/manual_readme_content.md
+@@ -0,0 +1,30 @@
++## Creating the Venafi API Application
++
++Before configuring an asset, an API Application (OAuth integration) must exist in your Venafi instance. You can create one with the request below. Replace the `ApplicationId` and `Scope`/`MaxScope` values so they match your organization's security policy. Include this configuration in your internal documentation so it can be imported into other Venafi instances with the same settings:
++
++**POST** `/vedsdk/oauth/CreateApplication`
++
++```json
++{
++    "ApplicationId": "<your-application-id>",
++    "Scope": "certificate:approve,delete,discover,manage,revoke;codesign:delete,manage;configuration:delete,manage;ssh:approve,delete,discover,manage;statistics",
++    "MaxScope": "certificate:approve,delete,discover,manage,revoke;codesign:delete,manage;configuration:delete,manage;ssh:approve,delete,discover,manage;statistics",
++    "Name": "Splunk SOAR",
++    "Vendor": "Splunk",
++    "Description": "Splunk SOAR",
++    "Url": ""
++}
++```
++
++The `ApplicationId` you choose becomes the **client_id** value in the asset configuration, and the `Scope`/`MaxScope` defines the maximum set of permissions the integration is allowed to request.
++
++## OAuth Scope
++
++The optional **OAuth Scope** asset setting controls the scope requested when the app obtains an OAuth token.
++
++- Leave it **blank** to use the default scope (`certificate:discover,delete,manage,revoke;configuration`). Existing assets and actions continue to work without reconfiguration.
++- Set a custom value to comply with a stricter security policy. The value must stay within the API Application's `MaxScope`; requesting anything beyond `MaxScope` results in a reduced or rejected token.
++
++## Base URL
++
++The **base_url** must be the bare Venafi host, for example `https://your-venafi-host`. Do not include an API path such as `/vedsdk`; the connector appends the required API paths automatically. Including a path causes token requests to fail with an "Invalid Venafi API URL" error.
+diff --git a/release_notes/unreleased.md b/release_notes/unreleased.md
+index fbcb2fd..f0a09c9 100644
+--- a/release_notes/unreleased.md
++++ b/release_notes/unreleased.md
+@@ -1 +1,3 @@
+ **Unreleased**
++
++* Add an optional asset-level "OAuth Scope" setting. Leave it blank to use the default scope and preserve existing behavior. [ESPM-5451]
+diff --git a/venafi.json b/venafi.json
+index c4d90dc..6481208 100644
+--- a/venafi.json
++++ b/venafi.json
+@@ -10,8 +10,8 @@
+     "product_version_regex": ".*",
+     "publisher": "Splunk",
+     "license": "Copyright (c) 2019-2026 Splunk Inc.",
+-    "app_version": "2.1.5",
+-    "utctime_updated": "2026-07-21T15:33:53.581576Z",
++    "app_version": "2.2.0",
++    "utctime_updated": "2026-07-29T00:00:00.000000Z",
+     "package_name": "phantom_venafi",
+     "main_module": "venafi_connector.py",
+     "min_phantom_version": "8.6.0",
+@@ -50,6 +50,12 @@
+             "data_type": "string",
+             "required": true,
+             "order": 4
++        },
++        "oauth_scope": {
++            "description": "Optional. OAuth scope for token requests. Leave blank to use the default scope (certificate:discover,delete,manage,revoke;configuration)",
++            "data_type": "string",
++            "required": false,
++            "order": 5
+         }
+     },
+     "actions": [
+diff --git a/venafi_connector.py b/venafi_connector.py
+index 1e93248..afcd898 100644
+--- a/venafi_connector.py
++++ b/venafi_connector.py
+@@ -50,6 +50,7 @@ class VenafiConnector(BaseConnector):
+         self._username = None
+         self._password = None
+         self._client_id = None
++        self._scope = None
+         self._access_token = None
+         self._refresh_token = None
+         self._asset_id = None
+@@ -76,6 +77,7 @@ class VenafiConnector(BaseConnector):
+         self._username = config["username"].strip()
+         self._password = config["password"].strip()
+         self._client_id = config["client_id"].strip()
++        self._scope = config.get("oauth_scope", "").strip() or consts.VENAFI_DEFAULT_SCOPE
+         self._access_token = self._state.get(consts.VENAFI_STATE_ACCESS_TOKEN, {}).get(consts.VENAFI_STATE_ACCESS_TOKEN)
+         self._refresh_token = self._state.get(consts.VENAFI_STATE_ACCESS_TOKEN, {}).get(consts.VENAFI_STATE_REFRESH_TOKEN)
+         return phantom.APP_SUCCESS
+@@ -284,13 +286,13 @@ class VenafiConnector(BaseConnector):
+         if force_new_token or (not self._access_token and not self._refresh_token):
+             self.debug_print("Generating tokens forcefully")
+             uri = consts.VENAFI_FETCH_TOKEN_URI
+-            # current set of actions supported by this app only requires these scopes.
+-            # scopes will need to be changed as the requirements of actions supported by app
++            # Scope defaults to consts.VENAFI_DEFAULT_SCOPE but can be overridden per-asset
++            # via the optional "oauth_scope" configuration setting.
+             body = {
+                 "username": self._username,
+                 "password": self._password,
+                 "client_id": self._client_id,
+-                "scope": "certificate:discover,delete,manage,revoke;configuration",
++                "scope": self._scope,
+             }
+         elif refresh_token or (not self._access_token and self._refresh_token):
+             self.debug_print("Generating token using refresh token")
+diff --git a/venafi_consts.py b/venafi_consts.py
+index dfd9f44..5c3267f 100644
+--- a/venafi_consts.py
++++ b/venafi_consts.py
+@@ -19,6 +19,9 @@ VENAFI_STATE_REFRESH_TOKEN = "refresh_token"
+ VENAFI_STATE_EXPIRES = "expires"
+ VENAFI_STATE_IS_ENCRYPTED = "is_encrypted"
+ 
++# OAuth
++VENAFI_DEFAULT_SCOPE = "certificate:discover,delete,manage,revoke;configuration"
++
+ # APIs
+ VENAFI_FETCH_ACCESS_TOKEN_URI = "/vedauth/Authorize/Token"
+ VENAFI_FETCH_TOKEN_URI = "/vedauth/authorize/oauth"
