@@ -102,7 +102,32 @@ class VenafiHelper:
 
     # --- token persistence -------------------------------------------------
     def _load_tokens(self) -> dict[str, Any]:
-        return dict(self.asset.auth_state.get_all()).get(_TOKEN_STATE_KEY) or {}
+        tokens = dict(self.asset.auth_state.get_all()).get(_TOKEN_STATE_KEY)
+        if tokens:
+            return tokens
+        # Migrate tokens saved by the classic (non-SDK) connector, which stored the
+        # token bundle at the top level of the state file under "access_token".
+        legacy = self._load_legacy_tokens()
+        if legacy:
+            state = dict(self.asset.auth_state.get_all())
+            state[_TOKEN_STATE_KEY] = legacy
+            self.asset.auth_state.put_all(state)
+            return legacy
+        return {}
+
+    def _load_legacy_tokens(self) -> dict[str, Any]:
+        """Best-effort read of tokens saved by the classic connector layout."""
+        try:
+            raw = self.asset.auth_state.backend.load_state() or {}
+        except Exception:
+            return {}
+        legacy = raw.get("access_token")
+        if isinstance(legacy, dict) and legacy.get("access_token"):
+            return {
+                "access_token": legacy.get("access_token"),
+                "refresh_token": legacy.get("refresh_token"),
+            }
+        return {}
 
     def _save_tokens(self) -> None:
         state = dict(self.asset.auth_state.get_all())
@@ -183,6 +208,10 @@ class VenafiHelper:
             "Content-Type": "application/json",
             "Authorization": f"Bearer {self._access_token}",
         }
+
+    def refresh(self) -> None:
+        """Force a token refresh, used to retry a raw request after a 401."""
+        self._refresh_access_token()
 
     # --- REST --------------------------------------------------------------
     def _request(

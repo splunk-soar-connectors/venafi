@@ -53,15 +53,15 @@ def http_action(
         )
 
     helper = VenafiHelper(soar, asset)
-    headers = helper.auth_headers()
 
     base_url = asset.base_url.rstrip("/")
     endpoint = "/" + params.endpoint.lstrip("/")
     url = f"{base_url}{endpoint}"
 
+    user_headers: dict = {}
     if params.headers:
         try:
-            headers.update(json.loads(params.headers))
+            user_headers = json.loads(params.headers)
         except (json.JSONDecodeError, TypeError) as e:
             raise ActionFailure(f"Invalid JSON headers: {params.headers}") from e
 
@@ -82,8 +82,9 @@ def http_action(
 
     timeout = params.timeout or VENAFI_DEFAULT_TIMEOUT
 
-    try:
-        response = requests.request(
+    def _send() -> requests.Response:
+        headers = {**helper.auth_headers(), **user_headers}
+        return requests.request(
             method=params.http_method,
             url=url,
             headers=headers,
@@ -92,6 +93,13 @@ def http_action(
             timeout=timeout,
             verify=params.verify_ssl,
         )
+
+    try:
+        response = _send()
+        if response.status_code == 401:
+            # Cached token was stale; refresh and retry once, like the other actions.
+            helper.refresh()
+            response = _send()
     except Exception as e:
         raise ActionFailure(f"Request failed: {e}") from e
 

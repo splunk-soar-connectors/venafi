@@ -80,6 +80,11 @@ def get_certificate(
     query["IncludePrivateKey"] = params.include_private_key or False
     query["RootFirstOrder"] = params.root_first_order or False
 
+    # Redact the sensitive password params so they are not echoed back into the
+    # action result parameters (the SDK serializes params into the result).
+    params.keystore_password = None
+    params.password = None
+
     file_name, content = helper.download_certificate(VENAFI_GET_CERTIFICATE_URI, query)
 
     container_id = soar.get_executing_container_id()
