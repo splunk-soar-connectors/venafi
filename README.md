@@ -351,8 +351,6 @@ action_result.summary.status | string | | Successfully retrieved certificate and
 action_result.message | string | | Status: Successfully retrieved certificate and downloaded it to vault |
 summary.total_objects | numeric | | 1 |
 summary.total_objects_successful | numeric | | 1 |
-action_result.parameter.keystore_password | password | | |
-action_result.parameter.password | password | | |
 
 ______________________________________________________________________
 

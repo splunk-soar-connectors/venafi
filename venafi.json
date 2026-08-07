@@ -1512,14 +1512,6 @@
                     "example_values": [
                         1
                     ]
-                },
-                {
-                    "data_path": "action_result.parameter.keystore_password",
-                    "data_type": "password"
-                },
-                {
-                    "data_path": "action_result.parameter.password",
-                    "data_type": "password"
                 }
             ],
             "render": {

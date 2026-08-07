@@ -80,6 +80,11 @@ class VenafiConnector(BaseConnector):
         self._scope = config.get("oauth_scope", "").strip() or consts.VENAFI_DEFAULT_SCOPE
         self._access_token = self._state.get(consts.VENAFI_STATE_ACCESS_TOKEN, {}).get(consts.VENAFI_STATE_ACCESS_TOKEN)
         self._refresh_token = self._state.get(consts.VENAFI_STATE_ACCESS_TOKEN, {}).get(consts.VENAFI_STATE_REFRESH_TOKEN)
+        if (self._access_token or self._refresh_token) and self._state.get(consts.VENAFI_STATE_TOKEN_BASE_URL) != self._base_url:
+            self.debug_print("Asset base URL changed since the stored tokens were issued; discarding stored tokens")
+            self._access_token = None
+            self._refresh_token = None
+            self.remove_tokens()
         return phantom.APP_SUCCESS
 
     def encrypt_state(self):
@@ -127,8 +132,14 @@ class VenafiConnector(BaseConnector):
         self._state[consts.VENAFI_STATE_IS_ENCRYPTED] = False
 
     def remove_tokens(self):
+        state_changed = False
         if self._state.get(consts.VENAFI_STATE_ACCESS_TOKEN):
             self._state.pop(consts.VENAFI_STATE_ACCESS_TOKEN)
+            state_changed = True
+        if self._state.get(consts.VENAFI_STATE_TOKEN_BASE_URL):
+            self._state.pop(consts.VENAFI_STATE_TOKEN_BASE_URL)
+            state_changed = True
+        if state_changed:
             self.save_state(self._state)
 
     @staticmethod
@@ -239,7 +250,7 @@ class VenafiConnector(BaseConnector):
         if 200 <= r.status_code < 399:
             return RetVal(phantom.APP_SUCCESS, resp_json)
 
-        if "error_description" in resp_json and "error" in resp_json:
+        if isinstance(resp_json, dict) and "error_description" in resp_json and "error" in resp_json:
             message = resp_json["error_description"]
         # You should process the error returned in the json
         else:
@@ -322,11 +333,27 @@ class VenafiConnector(BaseConnector):
             else:
                 return self._process_response(response, action_result)
 
-        resp_json = response.json()
+        try:
+            resp_json = response.json()
+        except Exception as ex:
+            error_message = self._get_error_message_from_exception(ex)
+            return RetVal(
+                action_result.set_status(phantom.APP_ERROR, f"Unable to parse JSON response from token endpoint. {error_message}"), None
+            )
+
+        if not isinstance(resp_json, dict) or not resp_json.get(consts.VENAFI_STATE_ACCESS_TOKEN):
+            return RetVal(
+                action_result.set_status(
+                    phantom.APP_ERROR, "Unexpected response from token endpoint: expected a JSON object containing an access token"
+                ),
+                None,
+            )
+
         self.save_progress("Successfully generated Access Token")
+        self._state[consts.VENAFI_STATE_TOKEN_BASE_URL] = self._base_url
         self._state[consts.VENAFI_STATE_ACCESS_TOKEN] = resp_json
         self._access_token = resp_json[consts.VENAFI_STATE_ACCESS_TOKEN]
-        self._refresh_token = resp_json[consts.VENAFI_STATE_REFRESH_TOKEN]
+        self._refresh_token = resp_json.get(consts.VENAFI_STATE_REFRESH_TOKEN)
         self.encrypt_state()
         self.save_state(self._state)
         return RetVal(phantom.APP_SUCCESS, None)
@@ -556,11 +583,16 @@ class VenafiConnector(BaseConnector):
         if phantom.is_fail(ret_val):
             return ret_val
 
-        for policy in response["Objects"]:
+        objects = response.get("Objects") if isinstance(response, dict) else None
+        if not isinstance(objects, list):
+            error = response.get("Error", "The server did not return an Objects list") if isinstance(response, dict) else "Invalid response"
+            return action_result.set_status(phantom.APP_ERROR, f"Failed to list policies. Server response: {error}")
+
+        for policy in objects:
             action_result.add_data(policy)
 
         summary = action_result.update_summary({})
-        summary["num_policies"] = len(response["Objects"])
+        summary["num_policies"] = len(objects)
 
         return action_result.set_status(phantom.APP_SUCCESS)
 
@@ -589,11 +621,16 @@ class VenafiConnector(BaseConnector):
         if phantom.is_fail(ret_val):
             return ret_val
 
-        for certificate in response["Certificates"]:
+        certificates = response.get("Certificates") if isinstance(response, dict) else None
+        if not isinstance(certificates, list):
+            error = response.get("Error", "The server did not return a Certificates list") if isinstance(response, dict) else "Invalid response"
+            return action_result.set_status(phantom.APP_ERROR, f"Failed to list certificates. Server response: {error}")
+
+        for certificate in certificates:
             action_result.add_data(certificate)
 
         summary = action_result.update_summary({})
-        summary["num_certificates"] = len(response["Certificates"])
+        summary["num_certificates"] = len(certificates)
 
         return action_result.set_status(phantom.APP_SUCCESS)
 
