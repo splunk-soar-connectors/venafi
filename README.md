@@ -4,7 +4,7 @@ Publisher: Splunk <br>
 Connector Version: 2.2.0 <br>
 Product Vendor: Venafi <br>
 Product Name: Venafi <br>
-Minimum Product Version: 8.6.0
+Minimum Product Version: 7.0.0
 
 This app integrates with an instance of Venafi to perform generic and investigative actions
 
@@ -33,35 +33,23 @@ VARIABLE | REQUIRED | TYPE | DESCRIPTION
 
 ### Supported Actions
 
-[test connectivity](#action-test-connectivity) - Validate the asset configuration for connectivity using supplied configuration <br>
-[list policies](#action-list-policies) - Returns a list of all policies in Venafi <br>
+[test connectivity](#action-test-connectivity) - test connectivity <br>
 [create certificate](#action-create-certificate) - Enrolls a certificate in Venafi <br>
+[get certificate](#action-get-certificate) - Downloads specified certificate to the vault <br>
 [list certificates](#action-list-certificates) - Returns a list of certificates in Venafi <br>
+[list policies](#action-list-policies) - Returns a list of all policies in Venafi <br>
+[make request](#action-make-request) - make request <br>
 [renew certificate](#action-renew-certificate) - Requests immediate renewal for an existing certificate in Venafi <br>
-[revoke certificate](#action-revoke-certificate) - Requests to revoke an existing certificate in Venafi <br>
-[get certificate](#action-get-certificate) - Downloads specified certificate to the vault
+[revoke certificate](#action-revoke-certificate) - Requests to revoke an existing certificate in Venafi
 
 ## action: 'test connectivity'
 
-Validate the asset configuration for connectivity using supplied configuration
+test connectivity
 
 Type: **test** <br>
 Read only: **True**
 
-#### Action Parameters
-
-No parameters are required for this action
-
-#### Action Output
-
-No Output
-
-## action: 'list policies'
-
-Returns a list of all policies in Venafi
-
-Type: **investigate** <br>
-Read only: **True**
+Basic test for app.
 
 #### Action Parameters
 
@@ -71,17 +59,8 @@ No parameters are required for this action
 
 DATA PATH | TYPE | CONTAINS | EXAMPLE VALUES
 --------- | ---- | -------- | --------------
-action_result.status | string | | success failed |
-action_result.data.\*.AbsoluteGUID | string | | {TESTe447-74f4-4c8a-8972-62aff3b2fee3}{EXAMPLE63f4-0bfc-468a-b41f-d8fa477bd1c0}{EXAMPLEaa0-1de7-4be4-bfe8-fbcb7e948502}{TESTbb4b-1cde-4d48-9684-a04effa3be7f} |
-action_result.data.\*.DN | string | `venafi policy dn` | \\VED\\Policy\\Certificates\\test |
-action_result.data.\*.GUID | string | | {TESTbb4b-1cde-4d48-9684-a04effa3be7f} |
-action_result.data.\*.Id | numeric | | 2139 |
-action_result.data.\*.Name | string | | Test |
-action_result.data.\*.Parent | string | | \\VED\\Policy\\Certificates |
-action_result.data.\*.Revision | numeric | | 636747885144784172 |
-action_result.data.\*.TypeName | string | | Policy |
-action_result.summary.num_policies | numeric | | 3 |
-action_result.message | string | | Num policies: 3 |
+action_result.status | string | | success failure |
+action_result.message | string | | |
 summary.total_objects | numeric | | 1 |
 summary.total_objects_successful | numeric | | 1 |
 
@@ -126,34 +105,73 @@ PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
 
 DATA PATH | TYPE | CONTAINS | EXAMPLE VALUES
 --------- | ---- | -------- | --------------
-action_result.status | string | | success failed |
-action_result.parameter.approvers | string | | [{"PrefixedUniversal":"local:test"}] |
-action_result.parameter.ca_specific_attributes | string | | [{"Adaptable CA":"Validity Period"}] |
-action_result.parameter.cadn | string | | \\VED\\Policy\\Partner Dev\\TLS\\Certificates\\Testing\\tpp.testdemo.com |
-action_result.parameter.city | string | | London |
-action_result.parameter.contacts | string | | [{"PrefixedUniversal":"local:testuser"}] |
-action_result.parameter.country | string | | US |
-action_result.parameter.created_by | string | | admin |
+action_result.status | string | | success failure |
+action_result.message | string | | |
+action_result.parameter.policy_dn | string | `venafi policy dn` | |
+action_result.parameter.subject | string | | |
+action_result.parameter.object_name | string | | |
+action_result.parameter.approvers | string | | |
+action_result.parameter.cadn | string | | |
+action_result.parameter.ca_specific_attributes | string | | |
+action_result.parameter.city | string | | |
+action_result.parameter.contacts | string | | |
+action_result.parameter.country | string | | |
+action_result.parameter.created_by | string | | |
 action_result.parameter.devices | string | | |
-action_result.parameter.disable_automatic_renewal | boolean | | True False |
-action_result.parameter.elliptical_curve | string | | P256 |
-action_result.parameter.key_algorithm | string | | RSA |
-action_result.parameter.key_bit_size | numeric | | 2048 |
-action_result.parameter.management_type | string | | Monitoring |
-action_result.parameter.object_name | string | | splk.com |
-action_result.parameter.organization | string | | Venafi, Inc. |
-action_result.parameter.organizational_unit | string | | Sales |
+action_result.parameter.disable_automatic_renewal | boolean | | |
+action_result.parameter.elliptical_curve | string | | |
+action_result.parameter.key_algorithm | string | | |
+action_result.parameter.key_bit_size | numeric | | |
+action_result.parameter.management_type | string | | |
+action_result.parameter.organization | string | | |
+action_result.parameter.organizational_unit | string | | |
 action_result.parameter.pkcs10 | string | | |
-action_result.parameter.policy_dn | string | `venafi policy dn` | \\VED\\Policy\\Certificates\\Test |
-action_result.parameter.reenable | boolean | | True False |
-action_result.parameter.set_work_to_do | boolean | | True False |
-action_result.parameter.state | string | | Ohio |
-action_result.parameter.subject | string | | splk.com |
-action_result.parameter.subject_alt_names | string | | [{"TypeName":"2", "Name":"www.example.com"}, {"TypeName":"7", "Name":"9.5.45.11"}] |
+action_result.parameter.reenable | boolean | | |
+action_result.parameter.set_work_to_do | boolean | | |
+action_result.parameter.state | string | | |
+action_result.parameter.subject_alt_names | string | | |
 action_result.data.\*.CertificateDN | string | `venafi certificate dn` | \\VED\\Policy\\Certificates\\test\\test.com |
 action_result.data.\*.Guid | string | | TEST6419-8615-40ce-b556-63EXAMPLEe833b |
-action_result.summary.status | string | | Successfully added certificate |
-action_result.message | string | | Status: Successfully added certificate |
+summary.total_objects | numeric | | 1 |
+summary.total_objects_successful | numeric | | 1 |
+
+## action: 'get certificate'
+
+Downloads specified certificate to the vault
+
+Type: **investigate** <br>
+Read only: **True**
+
+#### Action Parameters
+
+PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
+--------- | -------- | ----------- | ---- | --------
+**certificate_dn** | required | The Distinguished Name (DN) of the certificate to download | string | `venafi certificate dn` |
+**format** | optional | The certificate format for the return data | string | |
+**friendly_name** | optional | The label or alias to use for Base64, JKS, or PKCS #12 formats. Required for the JKS format | string | |
+**include_chain** | optional | When the Format is Base64, PKCS #7, PKCS #12, or JKS, you can include the parent or root chain in the return data | boolean | |
+**include_private_key** | optional | When the Format is Base64, PKCS #12, or JKS, you can specify whether to return the private key | boolean | |
+**keystore_password** | optional | If the Format is JKS, you must set a keystore password. Use the same requirements as required for the Password parameter | password | |
+**password** | optional | If the IncludePrivateKey value is true, you must create a password. Password must be 12 characters and comprised of at least 3 of the following: uppercase alphabetic letters, lowercase alphabetic letters, numeric characters, special characters | password | |
+**root_first_order** | optional | The order of the certificate chain to trust | boolean | |
+
+#### Action Output
+
+DATA PATH | TYPE | CONTAINS | EXAMPLE VALUES
+--------- | ---- | -------- | --------------
+action_result.status | string | | success failure |
+action_result.message | string | | |
+action_result.parameter.certificate_dn | string | `venafi certificate dn` | |
+action_result.parameter.format | string | | |
+action_result.parameter.friendly_name | string | | |
+action_result.parameter.include_chain | boolean | | |
+action_result.parameter.include_private_key | boolean | | |
+action_result.parameter.keystore_password | string | | |
+action_result.parameter.password | string | | |
+action_result.parameter.root_first_order | boolean | | |
+action_result.data.\*.name | string | | pge.com.cer |
+action_result.data.\*.size | numeric | | 2074 |
+action_result.data.\*.vault_id | string | `sha1` `vault id` | TEST86f38c9e7c50c1998c0ce0974faab4c9TEST |
 summary.total_objects | numeric | | 1 |
 summary.total_objects_successful | numeric | | 1 |
 
@@ -199,32 +217,32 @@ PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
 
 DATA PATH | TYPE | CONTAINS | EXAMPLE VALUES
 --------- | ---- | -------- | --------------
-action_result.status | string | | success failed |
-action_result.parameter.city | string | | London |
-action_result.parameter.common_name | string | `domain` `url` | tpp.testdemo.com |
-action_result.parameter.country | string | | US |
-action_result.parameter.key_algorithm | string | | RSA |
-action_result.parameter.key_size | numeric | | 2048 |
-action_result.parameter.key_size_greater | numeric | | 2048 |
-action_result.parameter.key_size_less | numeric | | 2048 |
-action_result.parameter.limit | numeric | | 20 |
-action_result.parameter.offset | numeric | | 0 |
-action_result.parameter.organization | string | | Venafi, Inc. |
-action_result.parameter.organization_unit | string | | Sales |
-action_result.parameter.san_dns | string | `domain` `url` | testdemo.com |
-action_result.parameter.san_email | string | `email` | example@test.com |
-action_result.parameter.san_ip | string | `ip` | 8.8.8.8 |
-action_result.parameter.san_upn | string | `email` | test@example.com |
-action_result.parameter.san_uri | string | `url` | https://www.example.com |
-action_result.parameter.serial | string | | 2F0000009D4E9635EFF0E758CB00000000009D |
-action_result.parameter.signature_algorithm | string | | sha256RSA |
-action_result.parameter.state | string | | Ohio |
+action_result.status | string | | success failure |
+action_result.message | string | | |
+action_result.parameter.limit | numeric | | |
+action_result.parameter.offset | numeric | | |
+action_result.parameter.country | string | | |
+action_result.parameter.common_name | string | `domain` `url` | |
+action_result.parameter.key_algorithm | string | | |
+action_result.parameter.key_size | numeric | | |
+action_result.parameter.key_size_greater | numeric | | |
+action_result.parameter.key_size_less | numeric | | |
+action_result.parameter.city | string | | |
+action_result.parameter.organization | string | | |
+action_result.parameter.organization_unit | string | | |
+action_result.parameter.state | string | | |
+action_result.parameter.san_dns | string | `domain` `url` | |
+action_result.parameter.san_email | string | `email` | |
+action_result.parameter.san_ip | string | `ip` | |
+action_result.parameter.san_upn | string | `email` | |
+action_result.parameter.san_uri | string | `url` | |
+action_result.parameter.serial | string | | |
+action_result.parameter.signature_algorithm | string | | |
 action_result.parameter.thumbprint | string | `sha1` | |
-action_result.parameter.valid_from | string | | 2020-02-28 |
-action_result.parameter.valid_to | string | | 2019-01-31 |
-action_result.parameter.valid_to_greater | string | | 2021-04-31 |
-action_result.parameter.valid_to_less | string | | 2020-02-23 |
-action_result.parameter.valid_to_less | string | | 2020-03-16 |
+action_result.parameter.valid_from | string | | |
+action_result.parameter.valid_to | string | | |
+action_result.parameter.valid_to_greater | string | | |
+action_result.parameter.valid_to_less | string | | |
 action_result.data.\*.CreatedOn | string | | 2018-10-26T15:30:01.6903192Z |
 action_result.data.\*.DN | string | `venafi certificate dn` | \\VED\\Policy\\Certificates\\test\\Venafi Generated\\example.venafi.com |
 action_result.data.\*.Guid | string | | {TEST27f9-938f-42fe-a1a6-475afdc5TEST} |
@@ -232,15 +250,82 @@ action_result.data.\*.Name | string | | example.test.com |
 action_result.data.\*.ParentDn | string | | \\VED\\Policy\\Certificates\\test\\Venafi Generated |
 action_result.data.\*.SchemaClass | string | | X509 Server Certificate |
 action_result.data.\*.X509.CN | string | | example.venafi.com |
-action_result.data.\*.X509.SANS.DNS | string | | CSR1 |
+action_result.data.\*.X509.SANS.DNS.\* | string | | CSR1 |
 action_result.data.\*.X509.SANS.Email.\* | string | `email` | test@123.com |
 action_result.data.\*.X509.Serial | string | | TEST5338000100009FA9 |
 action_result.data.\*.X509.Thumbprint | string | `sha1` | TEST15E5C9664FF67587A24BFA0CC87BA8C66B87 |
 action_result.data.\*.X509.ValidFrom | string | | 2019-03-28T22:39:49.0000000Z |
 action_result.data.\*.X509.ValidTo | string | | 2020-03-27T22:39:49.0000000Z |
-action_result.data.\*.\_links.\*.Details | string | | /vedsdk/certificates/%TEST5827f9-938f-42fe-a1a6-475afdc51448%7d |
-action_result.summary.num_certificates | numeric | | 20 |
-action_result.message | string | | Num certificates: 20 |
+action_result.data.\*.links.\*.Details | string | | /vedsdk/certificates/%TEST5827f9-938f-42fe-a1a6-475afdc51448%7d |
+action_result.summary.num_certificates | numeric | | |
+summary.total_objects | numeric | | 1 |
+summary.total_objects_successful | numeric | | 1 |
+
+## action: 'list policies'
+
+Returns a list of all policies in Venafi
+
+Type: **investigate** <br>
+Read only: **True**
+
+#### Action Parameters
+
+No parameters are required for this action
+
+#### Action Output
+
+DATA PATH | TYPE | CONTAINS | EXAMPLE VALUES
+--------- | ---- | -------- | --------------
+action_result.status | string | | success failure |
+action_result.message | string | | |
+action_result.data.\*.AbsoluteGUID | string | | {TESTe447-74f4-4c8a-8972-62aff3b2fee3}{EXAMPLE63f4-0bfc-468a-b41f-d8fa477bd1c0}{EXAMPLEaa0-1de7-4be4-bfe8-fbcb7e948502}{TESTbb4b-1cde-4d48-9684-a04effa3be7f} |
+action_result.data.\*.DN | string | `venafi policy dn` | \\VED\\Policy\\Certificates\\test |
+action_result.data.\*.GUID | string | | {TESTbb4b-1cde-4d48-9684-a04effa3be7f} |
+action_result.data.\*.Id | numeric | | 2139 |
+action_result.data.\*.Name | string | | Test |
+action_result.data.\*.Parent | string | | \\VED\\Policy\\Certificates |
+action_result.data.\*.Revision | numeric | | 636747885144784172 |
+action_result.data.\*.TypeName | string | | Policy |
+action_result.summary.num_policies | numeric | | |
+summary.total_objects | numeric | | 1 |
+summary.total_objects_successful | numeric | | 1 |
+
+## action: 'make request'
+
+make request
+
+Type: **generic** <br>
+Read only: **False**
+
+'make request' action for the app. Used to handle arbitrary HTTP requests with the app's asset
+
+#### Action Parameters
+
+PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
+--------- | -------- | ----------- | ---- | --------
+**http_method** | required | The HTTP method to use for the request. | string | |
+**endpoint** | required | Venafi API endpoint to call, appended to the asset base URL (e.g. '/vedsdk/certificates'). Do not include the base URL. | string | |
+**headers** | optional | The headers to send with the request (JSON object). An example is {'Content-Type': 'application/json'} | string | |
+**query_parameters** | optional | Parameters to append to the URL (JSON object or query string). An example is ?key=value&key2=value2 | string | |
+**body** | optional | The body to send with the request (JSON object). An example is {'key': 'value', 'key2': 'value2'} | string | |
+**timeout** | optional | The timeout for the request in seconds. | numeric | |
+**verify_ssl** | optional | Whether to verify the SSL certificate. Default is False. | boolean | |
+
+#### Action Output
+
+DATA PATH | TYPE | CONTAINS | EXAMPLE VALUES
+--------- | ---- | -------- | --------------
+action_result.status | string | | success failure |
+action_result.message | string | | |
+action_result.parameter.http_method | string | | |
+action_result.parameter.endpoint | string | | |
+action_result.parameter.headers | string | | |
+action_result.parameter.query_parameters | string | | |
+action_result.parameter.body | string | | |
+action_result.parameter.timeout | numeric | | |
+action_result.parameter.verify_ssl | boolean | | |
+action_result.data.\*.status_code | numeric | | 200 |
+action_result.data.\*.response_body | string | | {} |
 summary.total_objects | numeric | | 1 |
 summary.total_objects_successful | numeric | | 1 |
 
@@ -265,13 +350,12 @@ PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
 
 DATA PATH | TYPE | CONTAINS | EXAMPLE VALUES
 --------- | ---- | -------- | --------------
-action_result.status | string | | success failed |
-action_result.parameter.certificate_dn | string | `venafi certificate dn` | \\VED\\Policy\\Certificates\\test\\Venafi Generated\\example.venafi.com |
+action_result.status | string | | success failure |
+action_result.message | string | | |
+action_result.parameter.certificate_dn | string | `venafi certificate dn` | |
 action_result.parameter.pkcs10 | string | | |
-action_result.parameter.reenable | boolean | | True False |
+action_result.parameter.reenable | boolean | | |
 action_result.data.\*.Success | boolean | | True False |
-action_result.summary.status | string | | Successfully renewed certificate |
-action_result.message | string | | Status: Successfully renewed certificate |
 summary.total_objects | numeric | | 1 |
 summary.total_objects_successful | numeric | | 1 |
 
@@ -298,61 +382,19 @@ PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
 
 DATA PATH | TYPE | CONTAINS | EXAMPLE VALUES
 --------- | ---- | -------- | --------------
-action_result.status | string | | success failed |
-action_result.parameter.certificate_dn | string | `venafi certificate dn` | \\VED\\Policy\\Certificates\\test\\shiba.com |
-action_result.parameter.comments | string | | Please refer to test generated certificates |
-action_result.parameter.disable | boolean | | True False |
-action_result.parameter.reason | numeric | | 3 |
-action_result.parameter.thumbprint | string | `sha1` | TESTCDA4F588CFC22DB0F407A8A85D79B088TEST |
+action_result.status | string | | success failure |
+action_result.message | string | | |
+action_result.parameter.certificate_dn | string | `venafi certificate dn` | |
+action_result.parameter.thumbprint | string | `sha1` | |
+action_result.parameter.reason | numeric | | |
+action_result.parameter.comments | string | | |
+action_result.parameter.disable | boolean | | |
 action_result.data.\*.Requested | boolean | | True False |
 action_result.data.\*.Revoked | boolean | | True False |
 action_result.data.\*.Success | boolean | | True False |
 action_result.data.\*.Warning | string | | Revocation is already completed. The certificate "\\VED\\Policy\\Partner Dev\\TLS\\Certificates\\Testing\\testfriendlyname2" revocation was requested by another request or process. |
-action_result.summary.status | string | | |
-action_result.message | string | | Error from server. Status Code: 403 Data from server: {"Error":"Failed to revoke certificate; no permission."} |
-summary.total_objects | numeric | | 1 |
-summary.total_objects_successful | numeric | | 0 |
-
-## action: 'get certificate'
-
-Downloads specified certificate to the vault
-
-Type: **investigate** <br>
-Read only: **True**
-
-#### Action Parameters
-
-PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
---------- | -------- | ----------- | ---- | --------
-**certificate_dn** | required | The Distinguished Name (DN) of the certificate to download | string | `venafi certificate dn` |
-**format** | optional | The certificate format for the return data | string | |
-**friendly_name** | optional | The label or alias to use for Base64, JKS, or PKCS #12 formats. Required for the JKS format | string | |
-**include_chain** | optional | When the Format is Base64, PKCS #7, PKCS #12, or JKS, you can include the parent or root chain in the return data | boolean | |
-**include_private_key** | optional | When the Format is Base64, PKCS #12, or JKS, you can specify whether to return the private key | boolean | |
-**keystore_password** | optional | If the Format is JKS, you must set a keystore password. Use the same requirements as required for the Password parameter | password | |
-**password** | optional | If the IncludePrivateKey value is true, you must create a password. Password must be 12 characters and comprised of at least 3 of the following: uppercase alphabetic letters, lowercase alphabetic letters, numeric characters, special characters | password | |
-**root_first_order** | optional | The order of the certificate chain to trust | boolean | |
-
-#### Action Output
-
-DATA PATH | TYPE | CONTAINS | EXAMPLE VALUES
---------- | ---- | -------- | --------------
-action_result.status | string | | success failed |
-action_result.parameter.certificate_dn | string | `venafi certificate dn` | \\VED\\Policy\\Certificates\\test\\testing Generated\\pge.com |
-action_result.parameter.format | string | | Base64 |
-action_result.parameter.friendly_name | string | | tpp.exampledemo.com |
-action_result.parameter.include_chain | boolean | | True False |
-action_result.parameter.include_private_key | boolean | | True False |
-action_result.parameter.root_first_order | boolean | | True False |
-action_result.data.\*.name | string | | pge.com.cer |
-action_result.data.\*.size | numeric | | 2074 |
-action_result.data.\*.vault_id | string | `sha1` `vault id` | TEST86f38c9e7c50c1998c0ce0974faab4c9TEST |
-action_result.summary.status | string | | Successfully retrieved certificate and downloaded it to vault |
-action_result.message | string | | Status: Successfully retrieved certificate and downloaded it to vault |
 summary.total_objects | numeric | | 1 |
 summary.total_objects_successful | numeric | | 1 |
-action_result.parameter.keystore_password | password | | |
-action_result.parameter.password | password | | |
 
 ______________________________________________________________________
 

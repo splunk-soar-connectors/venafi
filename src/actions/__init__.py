@@ -1,5 +1,3 @@
-# File: __init__.py
-#
 # Copyright (c) 2019-2026 Splunk Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,3 +10,13 @@
 # the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
 # either express or implied. See the License for the specific language governing permissions
 # and limitations under the License.
+
+from . import (  # noqa: F401
+    create_certificate,
+    get_certificate,
+    list_certificates,
+    list_policies,
+    make_request,
+    renew_certificate,
+    revoke_certificate,
+)
