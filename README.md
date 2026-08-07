@@ -257,6 +257,7 @@ action_result.data.\*.X509.Thumbprint | string | `sha1` | TEST15E5C9664FF67587A2
 action_result.data.\*.X509.ValidFrom | string | | 2019-03-28T22:39:49.0000000Z |
 action_result.data.\*.X509.ValidTo | string | | 2020-03-27T22:39:49.0000000Z |
 action_result.data.\*.links.\*.Details | string | | /vedsdk/certificates/%TEST5827f9-938f-42fe-a1a6-475afdc51448%7d |
+action_result.summary.num_certificates | numeric | | |
 summary.total_objects | numeric | | 1 |
 summary.total_objects_successful | numeric | | 1 |
 
@@ -285,6 +286,7 @@ action_result.data.\*.Name | string | | Test |
 action_result.data.\*.Parent | string | | \\VED\\Policy\\Certificates |
 action_result.data.\*.Revision | numeric | | 636747885144784172 |
 action_result.data.\*.TypeName | string | | Policy |
+action_result.summary.num_policies | numeric | | |
 summary.total_objects | numeric | | 1 |
 summary.total_objects_successful | numeric | | 1 |
 

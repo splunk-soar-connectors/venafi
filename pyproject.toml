@@ -1,5 +1,5 @@
 [project]
-name = "venafi_sdk"
+name = "venafi"
 version = "2.2.0"
 description = "This app integrates with an instance of Venafi to perform generic and investigative actions"
 license = "Copyright (c) 2019-2026 Splunk Inc."

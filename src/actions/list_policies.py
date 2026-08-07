@@ -12,11 +12,15 @@
 # and limitations under the License.
 
 from soar_sdk.abstract import SOARClient
-from soar_sdk.action_results import OutputField, PermissiveActionOutput
+from soar_sdk.action_results import ActionOutput, OutputField, PermissiveActionOutput
 from soar_sdk.params import Params
 
 from ..app import Asset, VenafiHelper, app
 from ..venafi_consts import VENAFI_LIST_POLICIES_URI
+
+
+class ListPoliciesSummary(ActionOutput):
+    num_policies: int | None = None
 
 
 class ListPoliciesOutput(PermissiveActionOutput):
@@ -40,7 +44,9 @@ class ListPoliciesOutput(PermissiveActionOutput):
 
 
 @app.action(
-    description="Returns a list of all policies in Venafi", action_type="investigate"
+    description="Returns a list of all policies in Venafi",
+    action_type="investigate",
+    summary_type=ListPoliciesSummary,
 )
 def list_policies(
     params: Params, soar: SOARClient, asset: Asset
@@ -52,5 +58,6 @@ def list_policies(
     )
 
     objects = response.get("Objects", []) if isinstance(response, dict) else []
+    soar.set_summary(ListPoliciesSummary(num_policies=len(objects)))
     soar.set_message(f"Successfully retrieved {len(objects)} policies")
     return [ListPoliciesOutput(**policy) for policy in objects]

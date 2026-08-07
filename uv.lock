@@ -1106,7 +1106,7 @@ wheels = [
 ]
 
 [[package]]
-name = "venafi-sdk"
+name = "venafi"
 version = "2.2.0"
 source = { virtual = "." }
 dependencies = [

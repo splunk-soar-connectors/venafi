@@ -23,6 +23,10 @@ from ..venafi_consts import (
 )
 
 
+class ListCertificatesSummary(ActionOutput):
+    num_certificates: int | None = None
+
+
 class ListCertificatesParams(Params):
     limit: float | None = Param(
         description="Maximum number of certificates to return. Possible values are 1-100"
@@ -152,6 +156,7 @@ class ListCertificatesOutput(PermissiveActionOutput):
     description="Returns a list of certificates in Venafi",
     action_type="investigate",
     verbose="Returns certificate details and the total number of certificates that match specified search filters.",
+    summary_type=ListCertificatesSummary,
 )
 def list_certificates(
     params: ListCertificatesParams, soar: SOARClient, asset: Asset
@@ -168,11 +173,11 @@ def list_certificates(
             query[vkey] = value
 
     if params.limit is not None:
-        if params.limit < 0:
-            raise ActionFailure("'limit' must be a non-negative integer")
+        if params.limit != int(params.limit) or params.limit < 1:
+            raise ActionFailure("'limit' must be a positive integer (1-100)")
         query["limit"] = int(params.limit)
     if params.offset is not None:
-        if params.offset < 0:
+        if params.offset != int(params.offset) or params.offset < 0:
             raise ActionFailure("'offset' must be a non-negative integer")
         query["offset"] = int(params.offset)
 
@@ -183,5 +188,6 @@ def list_certificates(
     certificates = (
         response.get("Certificates", []) if isinstance(response, dict) else []
     )
+    soar.set_summary(ListCertificatesSummary(num_certificates=len(certificates)))
     soar.set_message(f"Successfully retrieved {len(certificates)} certificates")
     return [ListCertificatesOutput(**cert) for cert in certificates]

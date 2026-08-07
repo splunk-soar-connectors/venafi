@@ -258,7 +258,9 @@ class VenafiHelper:
             return {}
         if "json" in resp.headers.get("Content-Type", ""):
             return resp.json()
-        return {}
+        # A non-JSON body on a success code (e.g. an HTML proxy/login/error page
+        # returned with HTTP 200) is not valid data -- treat it as a failure.
+        raise ActionFailure(_parse_error_response(resp))
 
     def download_certificate(self, endpoint: str, params: dict) -> tuple[str, bytes]:
         """Stream a certificate download, returning (file_name, content bytes)."""
