@@ -46,6 +46,7 @@ class VenafiMakeRequestOutput(ActionOutput):
 def http_action(
     params: VenafiMakeRequestParams, soar: SOARClient, asset: Asset
 ) -> VenafiMakeRequestOutput:
+    """Make an authenticated request to the Venafi API."""
     if params.endpoint.startswith(("http://", "https://")):
         raise ActionFailure(
             f"Invalid endpoint: {params.endpoint}. Do not include the base URL — "
@@ -70,7 +71,8 @@ def http_action(
         try:
             query_params = json.loads(params.query_parameters)
         except (json.JSONDecodeError, TypeError):
-            query_string = params.query_parameters.lstrip("?")
+            # Raw query string passthrough: drop any URL fragment before appending.
+            query_string = params.query_parameters.split("#", 1)[0].lstrip("?")
             url = f"{url}?{query_string}" if "?" not in url else f"{url}&{query_string}"
 
     body = None
@@ -83,7 +85,8 @@ def http_action(
     timeout = params.timeout or VENAFI_DEFAULT_TIMEOUT
 
     def _send() -> requests.Response:
-        headers = {**helper.auth_headers(), **user_headers}
+        # Connector-generated auth headers take precedence over user-supplied ones.
+        headers = {**user_headers, **helper.auth_headers()}
         return requests.request(
             method=params.http_method,
             url=url,

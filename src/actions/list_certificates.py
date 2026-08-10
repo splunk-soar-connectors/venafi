@@ -149,7 +149,7 @@ class ListCertificatesOutput(PermissiveActionOutput):
     )
     SchemaClass: str | None = OutputField(example_values=["X509 Server Certificate"])
     X509: X509Output | None = None
-    links: list[LinksOutput] | None = None
+    links: list[LinksOutput] | None = OutputField(alias="_links")
 
 
 @app.action(
@@ -185,9 +185,13 @@ def list_certificates(
         VENAFI_LIST_CERTIFICATES_URI, method="get", params=query
     )
 
-    certificates = (
-        response.get("Certificates", []) if isinstance(response, dict) else []
-    )
+    if not isinstance(response, dict) or not isinstance(
+        response.get("Certificates"), list
+    ):
+        raise ActionFailure(
+            "Unexpected response from Venafi: missing 'Certificates' list"
+        )
+    certificates = response["Certificates"]
     soar.set_summary(ListCertificatesSummary(num_certificates=len(certificates)))
     soar.set_message(f"Successfully retrieved {len(certificates)} certificates")
     return [ListCertificatesOutput(**cert) for cert in certificates]

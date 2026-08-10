@@ -1,10 +1,10 @@
 # Venafi
 
 Publisher: Splunk <br>
-Connector Version: 2.2.0 <br>
+Connector Version: 2.3.0 <br>
 Product Vendor: Venafi <br>
 Product Name: Venafi <br>
-Minimum Product Version: 7.0.0
+Minimum Product Version: 8.6.0
 
 This app integrates with an instance of Venafi to perform generic and investigative actions
 
@@ -38,7 +38,7 @@ VARIABLE | REQUIRED | TYPE | DESCRIPTION
 [get certificate](#action-get-certificate) - Downloads specified certificate to the vault <br>
 [list certificates](#action-list-certificates) - Returns a list of certificates in Venafi <br>
 [list policies](#action-list-policies) - Returns a list of all policies in Venafi <br>
-[make request](#action-make-request) - make request <br>
+[make request](#action-make-request) - Make an authenticated request to the Venafi API. <br>
 [renew certificate](#action-renew-certificate) - Requests immediate renewal for an existing certificate in Venafi <br>
 [revoke certificate](#action-revoke-certificate) - Requests to revoke an existing certificate in Venafi
 
@@ -132,6 +132,7 @@ action_result.parameter.state | string | | |
 action_result.parameter.subject_alt_names | string | | |
 action_result.data.\*.CertificateDN | string | `venafi certificate dn` | \\VED\\Policy\\Certificates\\test\\test.com |
 action_result.data.\*.Guid | string | | TEST6419-8615-40ce-b556-63EXAMPLEe833b |
+action_result.summary.status | string | | |
 summary.total_objects | numeric | | 1 |
 summary.total_objects_successful | numeric | | 1 |
 
@@ -256,7 +257,7 @@ action_result.data.\*.X509.Serial | string | | TEST5338000100009FA9 |
 action_result.data.\*.X509.Thumbprint | string | `sha1` | TEST15E5C9664FF67587A24BFA0CC87BA8C66B87 |
 action_result.data.\*.X509.ValidFrom | string | | 2019-03-28T22:39:49.0000000Z |
 action_result.data.\*.X509.ValidTo | string | | 2020-03-27T22:39:49.0000000Z |
-action_result.data.\*.links.\*.Details | string | | /vedsdk/certificates/%TEST5827f9-938f-42fe-a1a6-475afdc51448%7d |
+action_result.data.\*.\_links.\*.Details | string | | /vedsdk/certificates/%TEST5827f9-938f-42fe-a1a6-475afdc51448%7d |
 action_result.summary.num_certificates | numeric | | |
 summary.total_objects | numeric | | 1 |
 summary.total_objects_successful | numeric | | 1 |
@@ -292,7 +293,7 @@ summary.total_objects_successful | numeric | | 1 |
 
 ## action: 'make request'
 
-make request
+Make an authenticated request to the Venafi API.
 
 Type: **generic** <br>
 Read only: **False**
@@ -356,6 +357,7 @@ action_result.parameter.certificate_dn | string | `venafi certificate dn` | |
 action_result.parameter.pkcs10 | string | | |
 action_result.parameter.reenable | boolean | | |
 action_result.data.\*.Success | boolean | | True False |
+action_result.summary.status | string | | |
 summary.total_objects | numeric | | 1 |
 summary.total_objects_successful | numeric | | 1 |
 
@@ -393,6 +395,7 @@ action_result.data.\*.Requested | boolean | | True False |
 action_result.data.\*.Revoked | boolean | | True False |
 action_result.data.\*.Success | boolean | | True False |
 action_result.data.\*.Warning | string | | Revocation is already completed. The certificate "\\VED\\Policy\\Partner Dev\\TLS\\Certificates\\Testing\\testfriendlyname2" revocation was requested by another request or process. |
+action_result.summary.status | string | | |
 summary.total_objects | numeric | | 1 |
 summary.total_objects_successful | numeric | | 1 |
 

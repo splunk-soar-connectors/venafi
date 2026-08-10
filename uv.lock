@@ -1107,7 +1107,7 @@ wheels = [
 
 [[package]]
 name = "venafi"
-version = "2.2.0"
+version = "2.3.0"
 source = { virtual = "." }
 dependencies = [
     { name = "splunk-soar-sdk" },

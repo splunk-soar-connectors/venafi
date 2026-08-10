@@ -38,11 +38,16 @@ class RenewCertificateOutput(ActionOutput):
     Success: bool | None = None
 
 
+class RenewCertificateSummary(ActionOutput):
+    status: str | None = None
+
+
 @app.action(
     description="Requests immediate renewal for an existing certificate in Venafi",
     action_type="generic",
     read_only=False,
     verbose="A renewable certificate cannot be currently processing, in error, or contain a 'Monitoring' Management Type.",
+    summary_type=RenewCertificateSummary,
 )
 def renew_certificate(
     params: RenewCertificateParams, soar: SOARClient, asset: Asset
@@ -66,5 +71,6 @@ def renew_certificate(
         )
         raise ActionFailure(f"Failed to renew certificate. Server response: {error}")
 
+    soar.set_summary(RenewCertificateSummary(status="Successfully renewed certificate"))
     soar.set_message("Successfully renewed certificate")
     return RenewCertificateOutput(Success=True)

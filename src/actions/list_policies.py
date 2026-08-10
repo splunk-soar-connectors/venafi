@@ -13,6 +13,7 @@
 
 from soar_sdk.abstract import SOARClient
 from soar_sdk.action_results import ActionOutput, OutputField, PermissiveActionOutput
+from soar_sdk.exceptions import ActionFailure
 from soar_sdk.params import Params
 
 from ..app import Asset, VenafiHelper, app
@@ -57,7 +58,9 @@ def list_policies(
         VENAFI_LIST_POLICIES_URI, method="post", json_body=data
     )
 
-    objects = response.get("Objects", []) if isinstance(response, dict) else []
+    if not isinstance(response, dict) or not isinstance(response.get("Objects"), list):
+        raise ActionFailure("Unexpected response from Venafi: missing 'Objects' list")
+    objects = response["Objects"]
     soar.set_summary(ListPoliciesSummary(num_policies=len(objects)))
     soar.set_message(f"Successfully retrieved {len(objects)} policies")
     return [ListPoliciesOutput(**policy) for policy in objects]

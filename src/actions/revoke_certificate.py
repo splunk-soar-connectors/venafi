@@ -54,11 +54,16 @@ class RevokeCertificateOutput(ActionOutput):
     )
 
 
+class RevokeCertificateSummary(ActionOutput):
+    status: str | None = None
+
+
 @app.action(
     description="Requests to revoke an existing certificate in Venafi",
     action_type="correct",
     read_only=False,
     verbose="The caller must have write permissions to the certificate object and either the CertificateDN or the Thumbprint parameter must be provided.",
+    summary_type=RevokeCertificateSummary,
 )
 def revoke_certificate(
     params: RevokeCertificateParams, soar: SOARClient, asset: Asset
@@ -89,6 +94,9 @@ def revoke_certificate(
         )
         raise ActionFailure(f"Failed to revoke certificate. Server response: {error}")
 
+    soar.set_summary(
+        RevokeCertificateSummary(status="Successfully revoked certificate")
+    )
     soar.set_message("Successfully revoked certificate")
     return RevokeCertificateOutput(
         Requested=response.get("Requested"),

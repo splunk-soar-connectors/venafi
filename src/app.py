@@ -145,6 +145,21 @@ class VenafiHelper:
         self._refresh_token = None
 
     # --- authentication ----------------------------------------------------
+    def _apply_token_response(self, resp: requests.Response) -> None:
+        """Validate and store an OAuth token response."""
+        try:
+            data = resp.json()
+        except ValueError:
+            raise ActionFailure(_parse_error_response(resp)) from None
+        access_token = data.get("access_token") if isinstance(data, dict) else None
+        if not access_token:
+            raise ActionFailure(
+                "Venafi token response did not contain a valid access_token"
+            )
+        self._access_token = access_token
+        self._refresh_token = data.get("refresh_token")
+        self._save_tokens()
+
     def _request_new_token(self) -> None:
         logger.info("Requesting a new Venafi access token")
         url = f"{self.base_url}{consts.VENAFI_FETCH_TOKEN_URI}"
@@ -162,10 +177,7 @@ class VenafiHelper:
         )
         if resp.status_code != 200:
             raise ActionFailure(_parse_error_response(resp))
-        data = resp.json()
-        self._access_token = data.get("access_token")
-        self._refresh_token = data.get("refresh_token")
-        self._save_tokens()
+        self._apply_token_response(resp)
 
     def _refresh_access_token(self) -> None:
         logger.info("Refreshing the Venafi access token")
@@ -183,10 +195,7 @@ class VenafiHelper:
             self.clear_tokens()
             self._request_new_token()
             return
-        data = resp.json()
-        self._access_token = data.get("access_token")
-        self._refresh_token = data.get("refresh_token")
-        self._save_tokens()
+        self._apply_token_response(resp)
 
     def get_token(self, force_new: bool = False) -> None:
         """Ensure a usable access token, obtaining or refreshing one as needed."""
@@ -326,6 +335,7 @@ app = App(
     product_name="Venafi",
     publisher="Splunk",
     appid="9e412afa-771a-4acf-a33b-fdc05c205692",
+    min_phantom_version="8.6.0",
     fips_compliant=True,
     encrypt_cache_state=True,
     encrypt_ingest_state=True,

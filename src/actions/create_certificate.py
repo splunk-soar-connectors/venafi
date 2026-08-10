@@ -105,6 +105,10 @@ class CreateCertificateOutput(ActionOutput):
     )
 
 
+class CreateCertificateSummary(ActionOutput):
+    status: str | None = None
+
+
 def _parse_json_array(raw: str | None, field_name: str) -> list:
     """Parse an optional JSON-array action parameter, defaulting to an empty list."""
     if not raw:
@@ -122,10 +126,14 @@ def _parse_json_array(raw: str | None, field_name: str) -> list:
     action_type="generic",
     read_only=False,
     verbose="Either Subject or ObjectName parameter must be filled out.",
+    summary_type=CreateCertificateSummary,
 )
 def create_certificate(
     params: CreateCertificateParams, soar: SOARClient, asset: Asset
 ) -> CreateCertificateOutput:
+    if not (params.subject or params.object_name):
+        raise ActionFailure("Either 'subject' or 'object_name' must be provided")
+
     helper = VenafiHelper(soar, asset)
 
     data = {
@@ -176,6 +184,9 @@ def create_certificate(
         )
         raise ActionFailure(f"Failed to create certificate. Server response: {error}")
 
+    soar.set_summary(
+        CreateCertificateSummary(status="Successfully created certificate")
+    )
     soar.set_message("Successfully created certificate")
     return CreateCertificateOutput(
         CertificateDN=response.get("CertificateDN"), Guid=response.get("Guid")
