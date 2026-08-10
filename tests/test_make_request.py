@@ -52,3 +52,22 @@ def test_no_retry_when_first_call_succeeds():
     helper.refresh.assert_not_called()
     assert req.call_count == 1
     assert output.status_code == 200
+
+
+def test_tls_verification_on_by_default():
+    # verify_ssl must default to True so the raw request verifies TLS like the
+    # other Venafi actions.
+    assert _params().verify_ssl is True
+
+    asset = MagicMock()
+    asset.base_url = "https://venafi.example"
+    with patch("src.actions.make_request.VenafiHelper") as helper_cls:
+        helper_cls.return_value.auth_headers.return_value = {
+            "Authorization": "Bearer x"
+        }
+        with patch(
+            "src.actions.make_request.requests.request", side_effect=[_resp(200)]
+        ) as req:
+            http_action.__wrapped__(_params(), MagicMock(), asset)
+
+    assert req.call_args.kwargs["verify"] is True

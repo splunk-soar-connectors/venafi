@@ -31,6 +31,11 @@ class VenafiMakeRequestParams(MakeRequestParams):
         ),
         required=True,
     )
+    verify_ssl: bool = Param(
+        description="Whether to verify the SSL certificate. Default is True.",
+        required=False,
+        default=True,
+    )
 
 
 class VenafiMakeRequestOutput(ActionOutput):

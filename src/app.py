@@ -102,32 +102,9 @@ class VenafiHelper:
 
     # --- token persistence -------------------------------------------------
     def _load_tokens(self) -> dict[str, Any]:
-        tokens = dict(self.asset.auth_state.get_all()).get(_TOKEN_STATE_KEY)
-        if tokens:
-            return tokens
-        # Migrate tokens saved by the classic (non-SDK) connector, which stored the
-        # token bundle at the top level of the state file under "access_token".
-        legacy = self._load_legacy_tokens()
-        if legacy:
-            state = dict(self.asset.auth_state.get_all())
-            state[_TOKEN_STATE_KEY] = legacy
-            self.asset.auth_state.put_all(state)
-            return legacy
-        return {}
-
-    def _load_legacy_tokens(self) -> dict[str, Any]:
-        """Best-effort read of tokens saved by the classic connector layout."""
-        try:
-            raw = self.asset.auth_state.backend.load_state() or {}
-        except Exception:
-            return {}
-        legacy = raw.get("access_token")
-        if isinstance(legacy, dict) and legacy.get("access_token"):
-            return {
-                "access_token": legacy.get("access_token"),
-                "refresh_token": legacy.get("refresh_token"),
-            }
-        return {}
+        # No migration from the classic connector's state: on upgrade there is no
+        # SDK token yet, so the first action performs a normal password grant.
+        return dict(self.asset.auth_state.get_all()).get(_TOKEN_STATE_KEY) or {}
 
     def _save_tokens(self) -> None:
         state = dict(self.asset.auth_state.get_all())
@@ -164,9 +141,9 @@ class VenafiHelper:
         logger.info("Requesting a new Venafi access token")
         url = f"{self.base_url}{consts.VENAFI_FETCH_TOKEN_URI}"
         body = {
-            "username": self.asset.username,
-            "password": self.asset.password,
-            "client_id": self.asset.client_id,
+            "username": self.asset.username.strip(),
+            "password": self.asset.password.strip(),
+            "client_id": self.asset.client_id.strip(),
             "scope": self.scope,
         }
         resp = requests.post(
@@ -182,7 +159,10 @@ class VenafiHelper:
     def _refresh_access_token(self) -> None:
         logger.info("Refreshing the Venafi access token")
         url = f"{self.base_url}{consts.VENAFI_FETCH_ACCESS_TOKEN_URI}"
-        body = {"client_id": self.asset.client_id, "refresh_token": self._refresh_token}
+        body = {
+            "client_id": self.asset.client_id.strip(),
+            "refresh_token": self._refresh_token,
+        }
         resp = requests.post(
             url,
             json=body,
