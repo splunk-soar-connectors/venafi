@@ -106,14 +106,14 @@ class ListCertificatesParams(Params):
     )
 
 
-class SansOutput(ActionOutput):
+class SansOutput(PermissiveActionOutput):
     DNS: list[str] | None = OutputField(example_values=["CSR1"])
     Email: list[str] | None = OutputField(
         cef_types=["email"], example_values=["test@123.com"]
     )
 
 
-class X509Output(ActionOutput):
+class X509Output(PermissiveActionOutput):
     CN: str | None = OutputField(example_values=["example.venafi.com"])
     SANS: SansOutput | None = None
     Serial: str | None = OutputField(example_values=["TEST5338000100009FA9"])
@@ -124,7 +124,7 @@ class X509Output(ActionOutput):
     ValidTo: str | None = OutputField(example_values=["2020-03-27T22:39:49.0000000Z"])
 
 
-class LinksOutput(ActionOutput):
+class LinksOutput(PermissiveActionOutput):
     Details: str | None = OutputField(
         example_values=[
             "/vedsdk/certificates/%TEST5827f9-938f-42fe-a1a6-475afdc51448%7d"
@@ -133,17 +133,22 @@ class LinksOutput(ActionOutput):
 
 
 class ListCertificatesOutput(PermissiveActionOutput):
-    CreatedOn: str | None = OutputField(example_values=["2018-10-26T15:30:01.6903192Z"])
+    # Name/DN are declared first (in this order) so the table columns render as
+    # Certificate (0) then Distinguished Name (1), matching the classic app.
+    Name: str | None = OutputField(
+        column_name="Certificate", example_values=["example.test.com"]
+    )
     DN: str | None = OutputField(
         cef_types=["venafi certificate dn"],
+        column_name="Distinguished Name",
         example_values=[
             "\\VED\\Policy\\Certificates\\test\\Venafi Generated\\example.venafi.com"
         ],
     )
+    CreatedOn: str | None = OutputField(example_values=["2018-10-26T15:30:01.6903192Z"])
     Guid: str | None = OutputField(
         example_values=["{TEST27f9-938f-42fe-a1a6-475afdc5TEST}"]
     )
-    Name: str | None = OutputField(example_values=["example.test.com"])
     ParentDn: str | None = OutputField(
         example_values=["\\VED\\Policy\\Certificates\\test\\Venafi Generated"]
     )
@@ -157,6 +162,7 @@ class ListCertificatesOutput(PermissiveActionOutput):
     action_type="investigate",
     verbose="Returns certificate details and the total number of certificates that match specified search filters.",
     summary_type=ListCertificatesSummary,
+    render_as="table",
 )
 def list_certificates(
     params: ListCertificatesParams, soar: SOARClient, asset: Asset
@@ -173,8 +179,8 @@ def list_certificates(
             query[vkey] = value
 
     if params.limit is not None:
-        if params.limit != int(params.limit) or params.limit < 1:
-            raise ActionFailure("'limit' must be a positive integer (1-100)")
+        if params.limit != int(params.limit) or not 1 <= params.limit <= 100:
+            raise ActionFailure("'limit' must be an integer between 1 and 100")
         query["limit"] = int(params.limit)
     if params.offset is not None:
         if params.offset != int(params.offset) or params.offset < 0:

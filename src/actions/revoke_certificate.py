@@ -64,6 +64,7 @@ class RevokeCertificateSummary(ActionOutput):
     read_only=False,
     verbose="The caller must have write permissions to the certificate object and either the CertificateDN or the Thumbprint parameter must be provided.",
     summary_type=RevokeCertificateSummary,
+    render_as="table",
 )
 def revoke_certificate(
     params: RevokeCertificateParams, soar: SOARClient, asset: Asset

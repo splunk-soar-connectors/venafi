@@ -25,20 +25,23 @@ class ListPoliciesSummary(ActionOutput):
 
 
 class ListPoliciesOutput(PermissiveActionOutput):
+    # Name/DN are declared first (in this order) so the table columns render as
+    # Policy (0) then Policy Dn (1), matching the classic app.
+    Name: str | None = OutputField(column_name="Policy", example_values=["Test"])
+    DN: str | None = OutputField(
+        cef_types=["venafi policy dn"],
+        column_name="Policy Dn",
+        example_values=["\\VED\\Policy\\Certificates\\test"],
+    )
     AbsoluteGUID: str | None = OutputField(
         example_values=[
             "{TESTe447-74f4-4c8a-8972-62aff3b2fee3}{EXAMPLE63f4-0bfc-468a-b41f-d8fa477bd1c0}{EXAMPLEaa0-1de7-4be4-bfe8-fbcb7e948502}{TESTbb4b-1cde-4d48-9684-a04effa3be7f}"
         ]
     )
-    DN: str | None = OutputField(
-        cef_types=["venafi policy dn"],
-        example_values=["\\VED\\Policy\\Certificates\\test"],
-    )
     GUID: str | None = OutputField(
         example_values=["{TESTbb4b-1cde-4d48-9684-a04effa3be7f}"]
     )
     Id: float | None = OutputField(example_values=[2139])
-    Name: str | None = OutputField(example_values=["Test"])
     Parent: str | None = OutputField(example_values=["\\VED\\Policy\\Certificates"])
     Revision: float | None = OutputField(example_values=[636747885144784172])
     TypeName: str | None = OutputField(example_values=["Policy"])
@@ -48,6 +51,7 @@ class ListPoliciesOutput(PermissiveActionOutput):
     description="Returns a list of all policies in Venafi",
     action_type="investigate",
     summary_type=ListPoliciesSummary,
+    render_as="table",
 )
 def list_policies(
     params: Params, soar: SOARClient, asset: Asset

@@ -40,3 +40,43 @@ def test_blank_scope_falls_back_to_default():
 def test_custom_scope_is_used():
     helper = VenafiHelper(MagicMock(), _asset("certificate:manage"))
     assert helper.scope == "certificate:manage"
+
+
+def _asset_with_state(state):
+    return SimpleNamespace(
+        base_url="https://venafi.example",
+        username="u",
+        password="p",
+        client_id="c",
+        oauth_scope="",
+        auth_state=state,
+    )
+
+
+def test_token_reused_for_same_host():
+    state = FakeAuthState(
+        {
+            "venafi_token": {
+                "access_token": "A",
+                "refresh_token": "R",
+                "base_url": "https://venafi.example",
+            }
+        }
+    )
+    helper = VenafiHelper(MagicMock(), _asset_with_state(state))
+    assert helper._access_token == "A"
+
+
+def test_token_discarded_when_base_url_changes():
+    state = FakeAuthState(
+        {
+            "venafi_token": {
+                "access_token": "A",
+                "refresh_token": "R",
+                "base_url": "https://old-host",
+            }
+        }
+    )
+    helper = VenafiHelper(MagicMock(), _asset_with_state(state))
+    assert helper._access_token is None
+    assert helper._refresh_token is None

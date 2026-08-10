@@ -127,6 +127,7 @@ def _parse_json_array(raw: str | None, field_name: str) -> list:
     read_only=False,
     verbose="Either Subject or ObjectName parameter must be filled out.",
     summary_type=CreateCertificateSummary,
+    render_as="table",
 )
 def create_certificate(
     params: CreateCertificateParams, soar: SOARClient, asset: Asset

@@ -171,8 +171,8 @@ action_result.parameter.keystore_password | string | | |
 action_result.parameter.password | string | | |
 action_result.parameter.root_first_order | boolean | | |
 action_result.data.\*.name | string | | pge.com.cer |
-action_result.data.\*.size | numeric | | 2074 |
 action_result.data.\*.vault_id | string | `sha1` `vault id` | TEST86f38c9e7c50c1998c0ce0974faab4c9TEST |
+action_result.data.\*.size | numeric | | 2074 |
 summary.total_objects | numeric | | 1 |
 summary.total_objects_successful | numeric | | 1 |
 
@@ -244,10 +244,10 @@ action_result.parameter.valid_from | string | | |
 action_result.parameter.valid_to | string | | |
 action_result.parameter.valid_to_greater | string | | |
 action_result.parameter.valid_to_less | string | | |
-action_result.data.\*.CreatedOn | string | | 2018-10-26T15:30:01.6903192Z |
-action_result.data.\*.DN | string | `venafi certificate dn` | \\VED\\Policy\\Certificates\\test\\Venafi Generated\\example.venafi.com |
-action_result.data.\*.Guid | string | | {TEST27f9-938f-42fe-a1a6-475afdc5TEST} |
 action_result.data.\*.Name | string | | example.test.com |
+action_result.data.\*.DN | string | `venafi certificate dn` | \\VED\\Policy\\Certificates\\test\\Venafi Generated\\example.venafi.com |
+action_result.data.\*.CreatedOn | string | | 2018-10-26T15:30:01.6903192Z |
+action_result.data.\*.Guid | string | | {TEST27f9-938f-42fe-a1a6-475afdc5TEST} |
 action_result.data.\*.ParentDn | string | | \\VED\\Policy\\Certificates\\test\\Venafi Generated |
 action_result.data.\*.SchemaClass | string | | X509 Server Certificate |
 action_result.data.\*.X509.CN | string | | example.venafi.com |
@@ -279,11 +279,11 @@ DATA PATH | TYPE | CONTAINS | EXAMPLE VALUES
 --------- | ---- | -------- | --------------
 action_result.status | string | | success failure |
 action_result.message | string | | |
-action_result.data.\*.AbsoluteGUID | string | | {TESTe447-74f4-4c8a-8972-62aff3b2fee3}{EXAMPLE63f4-0bfc-468a-b41f-d8fa477bd1c0}{EXAMPLEaa0-1de7-4be4-bfe8-fbcb7e948502}{TESTbb4b-1cde-4d48-9684-a04effa3be7f} |
+action_result.data.\*.Name | string | | Test |
 action_result.data.\*.DN | string | `venafi policy dn` | \\VED\\Policy\\Certificates\\test |
+action_result.data.\*.AbsoluteGUID | string | | {TESTe447-74f4-4c8a-8972-62aff3b2fee3}{EXAMPLE63f4-0bfc-468a-b41f-d8fa477bd1c0}{EXAMPLEaa0-1de7-4be4-bfe8-fbcb7e948502}{TESTbb4b-1cde-4d48-9684-a04effa3be7f} |
 action_result.data.\*.GUID | string | | {TESTbb4b-1cde-4d48-9684-a04effa3be7f} |
 action_result.data.\*.Id | numeric | | 2139 |
-action_result.data.\*.Name | string | | Test |
 action_result.data.\*.Parent | string | | \\VED\\Policy\\Certificates |
 action_result.data.\*.Revision | numeric | | 636747885144784172 |
 action_result.data.\*.TypeName | string | | Policy |

@@ -48,6 +48,7 @@ class RenewCertificateSummary(ActionOutput):
     read_only=False,
     verbose="A renewable certificate cannot be currently processing, in error, or contain a 'Monitoring' Management Type.",
     summary_type=RenewCertificateSummary,
+    render_as="table",
 )
 def renew_certificate(
     params: RenewCertificateParams, soar: SOARClient, asset: Asset

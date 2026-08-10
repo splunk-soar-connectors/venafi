@@ -104,13 +104,20 @@ class VenafiHelper:
     def _load_tokens(self) -> dict[str, Any]:
         # No migration from the classic connector's state: on upgrade there is no
         # SDK token yet, so the first action performs a normal password grant.
-        return dict(self.asset.auth_state.get_all()).get(_TOKEN_STATE_KEY) or {}
+        tokens = dict(self.asset.auth_state.get_all()).get(_TOKEN_STATE_KEY) or {}
+        # A cached token is only valid for the host it was issued against. If the
+        # asset's base URL changed, discard it so we never send a token to a
+        # different Venafi host.
+        if tokens and tokens.get("base_url") != self.base_url:
+            return {}
+        return tokens
 
     def _save_tokens(self) -> None:
         state = dict(self.asset.auth_state.get_all())
         state[_TOKEN_STATE_KEY] = {
             "access_token": self._access_token,
             "refresh_token": self._refresh_token,
+            "base_url": self.base_url,
         }
         self.asset.auth_state.put_all(state)
 
@@ -251,59 +258,45 @@ class VenafiHelper:
         # returned with HTTP 200) is not valid data -- treat it as a failure.
         raise ActionFailure(_parse_error_response(resp))
 
-    def download_certificate(self, endpoint: str, params: dict) -> tuple[str, bytes]:
-        """Stream a certificate download, returning (file_name, content bytes)."""
-        self.get_token()
+    def _stream_get(self, endpoint: str, params: dict) -> requests.Response:
         headers = {
             "Content-Type": "application/json",
             "Authorization": f"Bearer {self._access_token}",
         }
-        url = f"{self.base_url}{endpoint}"
-
-        resp = requests.get(
-            url,
+        return requests.get(
+            f"{self.base_url}{endpoint}",
             headers=headers,
             params=params,
             stream=True,
             timeout=consts.VENAFI_DEFAULT_TIMEOUT,
         )
+
+    def stream_certificate(
+        self, endpoint: str, params: dict
+    ) -> tuple[requests.Response, str]:
+        """Return an open streaming response for a certificate download plus the
+        suggested file name. The caller is responsible for consuming and closing
+        the response (streamed to a temp file to keep memory bounded).
+        """
+        self.get_token()
+        resp = self._stream_get(endpoint, params)
         if resp.status_code == 401:
-            self._refresh_access_token()
-            headers["Authorization"] = f"Bearer {self._access_token}"
-            resp = requests.get(
-                url,
-                headers=headers,
-                params=params,
-                stream=True,
-                timeout=consts.VENAFI_DEFAULT_TIMEOUT,
-            )
-
-        try:
-            if not 200 <= resp.status_code < 300:
-                raise ActionFailure(
-                    f"Certificate download failed. Status Code: {resp.status_code}"
-                )
-
-            content_disposition = resp.headers.get("Content-Disposition", "")
-            file_name = (
-                content_disposition.split('"')[1]
-                if '"' in content_disposition
-                else "certificate"
-            )
-
-            content = bytearray()
-            for chunk in resp.iter_content(
-                chunk_size=consts.VENAFI_DOWNLOAD_CHUNK_SIZE
-            ):
-                if chunk:
-                    content.extend(chunk)
-
-            if not content:
-                raise ActionFailure("Certificate download is empty")
-
-            return file_name, bytes(content)
-        finally:
             resp.close()
+            self._refresh_access_token()
+            resp = self._stream_get(endpoint, params)
+
+        if not 200 <= resp.status_code < 300:
+            status = resp.status_code
+            resp.close()
+            raise ActionFailure(f"Certificate download failed. Status Code: {status}")
+
+        content_disposition = resp.headers.get("Content-Disposition", "")
+        file_name = (
+            content_disposition.split('"')[1]
+            if '"' in content_disposition
+            else "certificate"
+        )
+        return resp, file_name
 
 
 app = App(

@@ -11,12 +11,21 @@
 # either express or implied. See the License for the specific language governing permissions
 # and limitations under the License.
 
+import os
+import tempfile
+from pathlib import Path
+
 from soar_sdk.abstract import SOARClient
 from soar_sdk.action_results import ActionOutput, OutputField
+from soar_sdk.exceptions import ActionFailure
 from soar_sdk.params import Param, Params
 
 from ..app import Asset, VenafiHelper, app
-from ..venafi_consts import VENAFI_GET_CERTIFICATE_PARAMS, VENAFI_GET_CERTIFICATE_URI
+from ..venafi_consts import (
+    VENAFI_DOWNLOAD_CHUNK_SIZE,
+    VENAFI_GET_CERTIFICATE_PARAMS,
+    VENAFI_GET_CERTIFICATE_URI,
+)
 
 
 class GetCertificateParams(Params):
@@ -53,17 +62,21 @@ class GetCertificateParams(Params):
 
 
 class GetCertificateOutput(ActionOutput):
-    name: str | None = OutputField(example_values=["pge.com.cer"])
-    size: float | None = OutputField(example_values=[2074])
+    name: str | None = OutputField(
+        column_name="Certificate", example_values=["pge.com.cer"]
+    )
     vault_id: str | None = OutputField(
         cef_types=["sha1", "vault id"],
+        column_name="Vault ID",
         example_values=["TEST86f38c9e7c50c1998c0ce0974faab4c9TEST"],
     )
+    size: float | None = OutputField(column_name="File Size", example_values=[2074])
 
 
 @app.action(
     description="Downloads specified certificate to the vault",
     action_type="investigate",
+    render_as="table",
 )
 def get_certificate(
     params: GetCertificateParams, soar: SOARClient, asset: Asset
@@ -85,10 +98,29 @@ def get_certificate(
     params.keystore_password = None
     params.password = None
 
-    file_name, content = helper.download_certificate(VENAFI_GET_CERTIFICATE_URI, query)
+    resp, file_name = helper.stream_certificate(VENAFI_GET_CERTIFICATE_URI, query)
 
-    container_id = soar.get_executing_container_id()
-    vault_id = soar.vault.create_attachment(container_id, content, file_name)
+    # Stream the download to a temp file so memory stays bounded regardless of
+    # certificate/keystore size, then add the file to the vault.
+    tmp_dir = soar.vault.get_vault_tmp_dir()
+    fd, tmp_path = tempfile.mkstemp(dir=tmp_dir)
+    os.close(fd)
+    size = 0
+    try:
+        with open(tmp_path, "wb") as f:
+            for chunk in resp.iter_content(chunk_size=VENAFI_DOWNLOAD_CHUNK_SIZE):
+                if chunk:
+                    f.write(chunk)
+                    size += len(chunk)
+
+        if size == 0:
+            raise ActionFailure("Certificate download is empty")
+
+        container_id = soar.get_executing_container_id()
+        vault_id = soar.vault.add_attachment(container_id, tmp_path, file_name)
+    finally:
+        resp.close()
+        Path(tmp_path).unlink(missing_ok=True)
 
     soar.set_message("Successfully retrieved certificate and added to the vault")
-    return GetCertificateOutput(name=file_name, size=len(content), vault_id=vault_id)
+    return GetCertificateOutput(name=file_name, size=size, vault_id=vault_id)

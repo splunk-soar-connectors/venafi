@@ -3,6 +3,9 @@
 
 from unittest.mock import MagicMock, patch
 
+import pytest
+from soar_sdk.exceptions import ActionFailure
+
 from src.actions.create_certificate import CreateCertificateParams, create_certificate
 from src.actions.list_certificates import ListCertificatesParams, list_certificates
 from src.actions.list_policies import list_policies
@@ -49,6 +52,16 @@ def test_list_certificates_success():
     assert len(out) == 1
     assert out[0].DN == CERT_DN
     soar.set_summary.assert_called_once()
+
+
+def test_list_certificates_rejects_limit_over_100():
+    with (
+        patch("src.actions.list_certificates.VenafiHelper"),
+        pytest.raises(ActionFailure, match="limit"),
+    ):
+        list_certificates.__wrapped__(
+            ListCertificatesParams(limit=101), MagicMock(), MagicMock()
+        )
 
 
 def test_create_certificate_success():
