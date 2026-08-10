@@ -9,7 +9,11 @@ from soar_sdk.exceptions import ActionFailure
 
 from src.app import VenafiHelper
 from src.actions.create_certificate import CreateCertificateParams, create_certificate
-from src.actions.list_certificates import ListCertificatesOutput, list_certificates
+from src.actions.list_certificates import (
+    ListCertificatesOutput,
+    ListCertificatesParams,
+    list_certificates,
+)
 from src.actions.list_policies import list_policies
 
 
@@ -63,7 +67,8 @@ def test_new_token_rejects_missing_access_token():
     helper = VenafiHelper(MagicMock(), _asset())
     with (
         patch(
-            "src.app.requests.post", return_value=_token_resp({"refresh_token": "R"})
+            "src.app.requests.post",
+            return_value=_token_resp({"refresh_token": "R"}),
         ),
         pytest.raises(ActionFailure, match="access_token"),
     ):
@@ -92,18 +97,19 @@ def _list_helper(response):
 
 def test_list_policies_fails_on_malformed_response():
     soar = MagicMock()
-    with patch("src.actions.list_policies.VenafiHelper", _list_helper({"foo": "bar"})):
-        with pytest.raises(ActionFailure):
-            list_policies.__wrapped__(MagicMock(), soar, MagicMock())
+    with (
+        patch("src.actions.list_policies.VenafiHelper", _list_helper({"foo": "bar"})),
+        pytest.raises(ActionFailure),
+    ):
+        list_policies.__wrapped__(MagicMock(), soar, MagicMock())
 
 
 def test_list_certificates_fails_on_malformed_response():
-    from src.actions.list_certificates import ListCertificatesParams
-
     soar = MagicMock()
     with (
         patch(
-            "src.actions.list_certificates.VenafiHelper", _list_helper({"foo": "bar"})
+            "src.actions.list_certificates.VenafiHelper",
+            _list_helper({"foo": "bar"}),
         ),
         pytest.raises(ActionFailure),
     ):
