@@ -308,7 +308,6 @@ app = App(
     product_name="Venafi",
     publisher="Splunk",
     appid="9e412afa-771a-4acf-a33b-fdc05c205692",
-    min_phantom_version="8.6.0",
     fips_compliant=True,
     encrypt_cache_state=True,
     encrypt_ingest_state=True,

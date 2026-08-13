@@ -4,7 +4,7 @@ Publisher: Splunk <br>
 Connector Version: 2.3.0 <br>
 Product Vendor: Venafi <br>
 Product Name: Venafi <br>
-Minimum Product Version: 8.6.0
+Minimum Product Version: 7.0.0
 
 This app integrates with an instance of Venafi to perform generic and investigative actions
 
