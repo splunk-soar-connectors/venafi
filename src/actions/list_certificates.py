@@ -191,13 +191,13 @@ def list_certificates(
         VENAFI_LIST_CERTIFICATES_URI, method="get", params=query
     )
 
-    if not isinstance(response, dict) or not isinstance(
-        response.get("Certificates"), list
-    ):
-        raise ActionFailure(
-            "Unexpected response from Venafi: missing 'Certificates' list"
-        )
-    certificates = response["Certificates"]
+    if not isinstance(response, dict):
+        raise ActionFailure("Unexpected response from Venafi")
+    # Venafi omits the "Certificates" key when a search matches nothing;
+    # treat that as zero results (success) rather than an error.
+    certificates = response.get("Certificates") or []
+    if not isinstance(certificates, list):
+        raise ActionFailure("Unexpected 'Certificates' field type in Venafi response")
     soar.set_summary(ListCertificatesSummary(num_certificates=len(certificates)))
     soar.set_message(f"Successfully retrieved {len(certificates)} certificates")
     return [ListCertificatesOutput(**cert) for cert in certificates]
