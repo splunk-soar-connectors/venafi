@@ -34,11 +34,11 @@ VARIABLE | REQUIRED | TYPE | DESCRIPTION
 ### Supported Actions
 
 [test connectivity](#action-test-connectivity) - test connectivity <br>
-[create certificate](#action-create-certificate) - Enrolls a certificate in Venafi <br>
-[get certificate](#action-get-certificate) - Downloads specified certificate to the vault <br>
+[make request](#action-make-request) - Make an authenticated request to the Venafi API. <br>
 [list certificates](#action-list-certificates) - Returns a list of certificates in Venafi <br>
 [list policies](#action-list-policies) - Returns a list of all policies in Venafi <br>
-[make request](#action-make-request) - Make an authenticated request to the Venafi API. <br>
+[get certificate](#action-get-certificate) - Downloads specified certificate to the vault <br>
+[create certificate](#action-create-certificate) - Enrolls a certificate in Venafi <br>
 [renew certificate](#action-renew-certificate) - Requests immediate renewal for an existing certificate in Venafi <br>
 [revoke certificate](#action-revoke-certificate) - Requests to revoke an existing certificate in Venafi
 
@@ -64,42 +64,26 @@ action_result.message | string | | |
 summary.total_objects | numeric | | 1 |
 summary.total_objects_successful | numeric | | 1 |
 
-## action: 'create certificate'
+## action: 'make request'
 
-Enrolls a certificate in Venafi
+Make an authenticated request to the Venafi API.
 
 Type: **generic** <br>
 Read only: **False**
 
-Either Subject or ObjectName parameter must be filled out.
+'make request' action for the app. Used to handle arbitrary HTTP requests with the app's asset
 
 #### Action Parameters
 
 PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
 --------- | -------- | ----------- | ---- | --------
-**policy_dn** | required | The folder DN for the new certificate | string | `venafi policy dn` |
-**subject** | optional | The Common Name (CN) field for the certificate. Either the subject or object_name parameter must be filled in | string | |
-**object_name** | optional | The Common Name (CN) field for the certificate. Either the subject or object_name parameter must be filled in | string | |
-**approvers** | optional | An array of one or more identities for certificate workflow approvers | string | |
-**cadn** | optional | The Distinguished Name (DN) of the Trust Protection Platform Certificate Authority Template object | string | |
-**ca_specific_attributes** | optional | An array of name/value pairs providing any CA attributes to be stored with the Certificate object and submitted to the CA during enrollment | string | |
-**city** | optional | Locality/City attribute of Certificate | string | |
-**contacts** | optional | An array of one or more identities for users or groups who receive notifications about events pertaining to the object | string | |
-**country** | optional | The Country field for the certificate Subject DN | string | |
-**created_by** | optional | The setting to identify the object that initiated enrollment or provisioning changes | string | |
-**devices** | optional | An array of devices that require enrollment or provisioning | string | |
-**disable_automatic_renewal** | optional | The setting to control whether manual intervention is required for certificate renewal | boolean | |
-**elliptical_curve** | optional | P256, P384, or P521 encryption for Elliptical Curve Cryptography | string | |
-**key_algorithm** | optional | Algorithm for public key of Certificate | string | |
-**key_bit_size** | optional | The number of bits to allow for key generation | numeric | |
-**management_type** | optional | The level of management that Trust Protection Platform applies to the certificate | string | |
-**organization** | optional | Organization attribute of the certificate | string | |
-**organizational_unit** | optional | Organizational unit attribute of the certificate | string | |
-**pkcs10** | optional | The PKCS10 formatted CSR for the certificate | string | |
-**reenable** | optional | Option to renew a previously disabled certificate | boolean | |
-**set_work_to_do** | optional | Option to control certificate processing | boolean | |
-**state** | optional | State/Province attribute of Certificate | string | |
-**subject_alt_names** | optional | Skip parameter if the policy already specifies SAN Types. Array of subject alternative names (SANS) for the certificate. For each SAN, specify an array element with a Type and a corresponding Name. For example, SubjectAltNames:[ {Type:2, Name:www.example.com}, {Type:7, Name:122.122.122.122} ]. The Type parameter is an integer that represents the kind of SAN which can be 0:OtherName, 1: Email, 2:DNS, 6: URI, or 7:IPAddress. The Name value is the SAN Friendly name that corresponds to the Type parameter | string | |
+**http_method** | required | The HTTP method to use for the request. | string | |
+**endpoint** | required | Venafi API endpoint to call, appended to the asset base URL (e.g. '/vedsdk/certificates'). Do not include the base URL. | string | |
+**headers** | optional | The headers to send with the request (JSON object). An example is {'Content-Type': 'application/json'} | string | |
+**query_parameters** | optional | Parameters to append to the URL (JSON object or query string). An example is ?key=value&key2=value2 | string | |
+**body** | optional | The body to send with the request (JSON object). An example is {'key': 'value', 'key2': 'value2'} | string | |
+**timeout** | optional | The timeout for the request in seconds. | numeric | |
+**verify_ssl** | optional | Whether to verify the SSL certificate. Default is True. | boolean | |
 
 #### Action Output
 
@@ -107,72 +91,15 @@ DATA PATH | TYPE | CONTAINS | EXAMPLE VALUES
 --------- | ---- | -------- | --------------
 action_result.status | string | | success failure |
 action_result.message | string | | |
-action_result.parameter.policy_dn | string | `venafi policy dn` | |
-action_result.parameter.subject | string | | |
-action_result.parameter.object_name | string | | |
-action_result.parameter.approvers | string | | |
-action_result.parameter.cadn | string | | |
-action_result.parameter.ca_specific_attributes | string | | |
-action_result.parameter.city | string | | |
-action_result.parameter.contacts | string | | |
-action_result.parameter.country | string | | |
-action_result.parameter.created_by | string | | |
-action_result.parameter.devices | string | | |
-action_result.parameter.disable_automatic_renewal | boolean | | |
-action_result.parameter.elliptical_curve | string | | |
-action_result.parameter.key_algorithm | string | | |
-action_result.parameter.key_bit_size | numeric | | |
-action_result.parameter.management_type | string | | |
-action_result.parameter.organization | string | | |
-action_result.parameter.organizational_unit | string | | |
-action_result.parameter.pkcs10 | string | | |
-action_result.parameter.reenable | boolean | | |
-action_result.parameter.set_work_to_do | boolean | | |
-action_result.parameter.state | string | | |
-action_result.parameter.subject_alt_names | string | | |
-action_result.data.\*.CertificateDN | string | `venafi certificate dn` | \\VED\\Policy\\Certificates\\test\\test.com |
-action_result.data.\*.Guid | string | | TEST6419-8615-40ce-b556-63EXAMPLEe833b |
-action_result.summary.status | string | | |
-summary.total_objects | numeric | | 1 |
-summary.total_objects_successful | numeric | | 1 |
-
-## action: 'get certificate'
-
-Downloads specified certificate to the vault
-
-Type: **investigate** <br>
-Read only: **True**
-
-#### Action Parameters
-
-PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
---------- | -------- | ----------- | ---- | --------
-**certificate_dn** | required | The Distinguished Name (DN) of the certificate to download | string | `venafi certificate dn` |
-**format** | optional | The certificate format for the return data | string | |
-**friendly_name** | optional | The label or alias to use for Base64, JKS, or PKCS #12 formats. Required for the JKS format | string | |
-**include_chain** | optional | When the Format is Base64, PKCS #7, PKCS #12, or JKS, you can include the parent or root chain in the return data | boolean | |
-**include_private_key** | optional | When the Format is Base64, PKCS #12, or JKS, you can specify whether to return the private key | boolean | |
-**keystore_password** | optional | If the Format is JKS, you must set a keystore password. Use the same requirements as required for the Password parameter | password | |
-**password** | optional | If the IncludePrivateKey value is true, you must create a password. Password must be 12 characters and comprised of at least 3 of the following: uppercase alphabetic letters, lowercase alphabetic letters, numeric characters, special characters | password | |
-**root_first_order** | optional | The order of the certificate chain to trust | boolean | |
-
-#### Action Output
-
-DATA PATH | TYPE | CONTAINS | EXAMPLE VALUES
---------- | ---- | -------- | --------------
-action_result.status | string | | success failure |
-action_result.message | string | | |
-action_result.parameter.certificate_dn | string | `venafi certificate dn` | |
-action_result.parameter.format | string | | |
-action_result.parameter.friendly_name | string | | |
-action_result.parameter.include_chain | boolean | | |
-action_result.parameter.include_private_key | boolean | | |
-action_result.parameter.keystore_password | string | | |
-action_result.parameter.password | string | | |
-action_result.parameter.root_first_order | boolean | | |
-action_result.data.\*.name | string | | pge.com.cer |
-action_result.data.\*.vault_id | string | `sha1` `vault id` | TEST86f38c9e7c50c1998c0ce0974faab4c9TEST |
-action_result.data.\*.size | numeric | | 2074 |
+action_result.parameter.http_method | string | | |
+action_result.parameter.endpoint | string | | |
+action_result.parameter.headers | string | | |
+action_result.parameter.query_parameters | string | | |
+action_result.parameter.body | string | | |
+action_result.parameter.timeout | numeric | | |
+action_result.parameter.verify_ssl | boolean | | |
+action_result.data.\*.status_code | numeric | | 200 |
+action_result.data.\*.response_body | string | | {} |
 summary.total_objects | numeric | | 1 |
 summary.total_objects_successful | numeric | | 1 |
 
@@ -291,26 +218,25 @@ action_result.summary.num_policies | numeric | | |
 summary.total_objects | numeric | | 1 |
 summary.total_objects_successful | numeric | | 1 |
 
-## action: 'make request'
+## action: 'get certificate'
 
-Make an authenticated request to the Venafi API.
+Downloads specified certificate to the vault
 
-Type: **generic** <br>
-Read only: **False**
-
-'make request' action for the app. Used to handle arbitrary HTTP requests with the app's asset
+Type: **investigate** <br>
+Read only: **True**
 
 #### Action Parameters
 
 PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
 --------- | -------- | ----------- | ---- | --------
-**http_method** | required | The HTTP method to use for the request. | string | |
-**endpoint** | required | Venafi API endpoint to call, appended to the asset base URL (e.g. '/vedsdk/certificates'). Do not include the base URL. | string | |
-**headers** | optional | The headers to send with the request (JSON object). An example is {'Content-Type': 'application/json'} | string | |
-**query_parameters** | optional | Parameters to append to the URL (JSON object or query string). An example is ?key=value&key2=value2 | string | |
-**body** | optional | The body to send with the request (JSON object). An example is {'key': 'value', 'key2': 'value2'} | string | |
-**timeout** | optional | The timeout for the request in seconds. | numeric | |
-**verify_ssl** | optional | Whether to verify the SSL certificate. Default is True. | boolean | |
+**certificate_dn** | required | The Distinguished Name (DN) of the certificate to download | string | `venafi certificate dn` |
+**format** | optional | The certificate format for the return data | string | |
+**friendly_name** | optional | The label or alias to use for Base64, JKS, or PKCS #12 formats. Required for the JKS format | string | |
+**include_chain** | optional | When the Format is Base64, PKCS #7, PKCS #12, or JKS, you can include the parent or root chain in the return data | boolean | |
+**include_private_key** | optional | When the Format is Base64, PKCS #12, or JKS, you can specify whether to return the private key | boolean | |
+**keystore_password** | optional | If the Format is JKS, you must set a keystore password. Use the same requirements as required for the Password parameter | password | |
+**password** | optional | If the IncludePrivateKey value is true, you must create a password. Password must be 12 characters and comprised of at least 3 of the following: uppercase alphabetic letters, lowercase alphabetic letters, numeric characters, special characters | password | |
+**root_first_order** | optional | The order of the certificate chain to trust | boolean | |
 
 #### Action Output
 
@@ -318,15 +244,89 @@ DATA PATH | TYPE | CONTAINS | EXAMPLE VALUES
 --------- | ---- | -------- | --------------
 action_result.status | string | | success failure |
 action_result.message | string | | |
-action_result.parameter.http_method | string | | |
-action_result.parameter.endpoint | string | | |
-action_result.parameter.headers | string | | |
-action_result.parameter.query_parameters | string | | |
-action_result.parameter.body | string | | |
-action_result.parameter.timeout | numeric | | |
-action_result.parameter.verify_ssl | boolean | | |
-action_result.data.\*.status_code | numeric | | 200 |
-action_result.data.\*.response_body | string | | {} |
+action_result.parameter.certificate_dn | string | `venafi certificate dn` | |
+action_result.parameter.format | string | | |
+action_result.parameter.friendly_name | string | | |
+action_result.parameter.include_chain | boolean | | |
+action_result.parameter.include_private_key | boolean | | |
+action_result.parameter.keystore_password | string | | |
+action_result.parameter.password | string | | |
+action_result.parameter.root_first_order | boolean | | |
+action_result.data.\*.name | string | | pge.com.cer |
+action_result.data.\*.vault_id | string | `sha1` `vault id` | TEST86f38c9e7c50c1998c0ce0974faab4c9TEST |
+action_result.data.\*.size | numeric | | 2074 |
+summary.total_objects | numeric | | 1 |
+summary.total_objects_successful | numeric | | 1 |
+
+## action: 'create certificate'
+
+Enrolls a certificate in Venafi
+
+Type: **generic** <br>
+Read only: **False**
+
+Either Subject or ObjectName parameter must be filled out.
+
+#### Action Parameters
+
+PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
+--------- | -------- | ----------- | ---- | --------
+**policy_dn** | required | The folder DN for the new certificate | string | `venafi policy dn` |
+**subject** | optional | The Common Name (CN) field for the certificate. Either the subject or object_name parameter must be filled in | string | |
+**object_name** | optional | The Common Name (CN) field for the certificate. Either the subject or object_name parameter must be filled in | string | |
+**approvers** | optional | An array of one or more identities for certificate workflow approvers | string | |
+**cadn** | optional | The Distinguished Name (DN) of the Trust Protection Platform Certificate Authority Template object | string | |
+**ca_specific_attributes** | optional | An array of name/value pairs providing any CA attributes to be stored with the Certificate object and submitted to the CA during enrollment | string | |
+**city** | optional | Locality/City attribute of Certificate | string | |
+**contacts** | optional | An array of one or more identities for users or groups who receive notifications about events pertaining to the object | string | |
+**country** | optional | The Country field for the certificate Subject DN | string | |
+**created_by** | optional | The setting to identify the object that initiated enrollment or provisioning changes | string | |
+**devices** | optional | An array of devices that require enrollment or provisioning | string | |
+**disable_automatic_renewal** | optional | The setting to control whether manual intervention is required for certificate renewal | boolean | |
+**elliptical_curve** | optional | P256, P384, or P521 encryption for Elliptical Curve Cryptography | string | |
+**key_algorithm** | optional | Algorithm for public key of Certificate | string | |
+**key_bit_size** | optional | The number of bits to allow for key generation | numeric | |
+**management_type** | optional | The level of management that Trust Protection Platform applies to the certificate | string | |
+**organization** | optional | Organization attribute of the certificate | string | |
+**organizational_unit** | optional | Organizational unit attribute of the certificate | string | |
+**pkcs10** | optional | The PKCS10 formatted CSR for the certificate | string | |
+**reenable** | optional | Option to renew a previously disabled certificate | boolean | |
+**set_work_to_do** | optional | Option to control certificate processing | boolean | |
+**state** | optional | State/Province attribute of Certificate | string | |
+**subject_alt_names** | optional | Skip parameter if the policy already specifies SAN Types. Array of subject alternative names (SANS) for the certificate. For each SAN, specify an array element with a Type and a corresponding Name. For example, SubjectAltNames:[ {Type:2, Name:www.example.com}, {Type:7, Name:122.122.122.122} ]. The Type parameter is an integer that represents the kind of SAN which can be 0:OtherName, 1: Email, 2:DNS, 6: URI, or 7:IPAddress. The Name value is the SAN Friendly name that corresponds to the Type parameter | string | |
+
+#### Action Output
+
+DATA PATH | TYPE | CONTAINS | EXAMPLE VALUES
+--------- | ---- | -------- | --------------
+action_result.status | string | | success failure |
+action_result.message | string | | |
+action_result.parameter.policy_dn | string | `venafi policy dn` | |
+action_result.parameter.subject | string | | |
+action_result.parameter.object_name | string | | |
+action_result.parameter.approvers | string | | |
+action_result.parameter.cadn | string | | |
+action_result.parameter.ca_specific_attributes | string | | |
+action_result.parameter.city | string | | |
+action_result.parameter.contacts | string | | |
+action_result.parameter.country | string | | |
+action_result.parameter.created_by | string | | |
+action_result.parameter.devices | string | | |
+action_result.parameter.disable_automatic_renewal | boolean | | |
+action_result.parameter.elliptical_curve | string | | |
+action_result.parameter.key_algorithm | string | | |
+action_result.parameter.key_bit_size | numeric | | |
+action_result.parameter.management_type | string | | |
+action_result.parameter.organization | string | | |
+action_result.parameter.organizational_unit | string | | |
+action_result.parameter.pkcs10 | string | | |
+action_result.parameter.reenable | boolean | | |
+action_result.parameter.set_work_to_do | boolean | | |
+action_result.parameter.state | string | | |
+action_result.parameter.subject_alt_names | string | | |
+action_result.data.\*.CertificateDN | string | `venafi certificate dn` | \\VED\\Policy\\Certificates\\test\\test.com |
+action_result.data.\*.Guid | string | | TEST6419-8615-40ce-b556-63EXAMPLEe833b |
+action_result.summary.status | string | | |
 summary.total_objects | numeric | | 1 |
 summary.total_objects_successful | numeric | | 1 |
 

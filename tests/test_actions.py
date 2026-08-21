@@ -59,9 +59,7 @@ def test_list_certificates_rejects_limit_over_100():
         patch("src.actions.list_certificates.VenafiHelper"),
         pytest.raises(ActionFailure, match="limit"),
     ):
-        list_certificates(
-            ListCertificatesParams(limit=101), MagicMock(), MagicMock()
-        )
+        list_certificates(ListCertificatesParams(limit=101), MagicMock(), MagicMock())
 
 
 def test_create_certificate_success():
