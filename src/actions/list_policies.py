@@ -16,7 +16,8 @@ from soar_sdk.action_results import ActionOutput, OutputField, PermissiveActionO
 from soar_sdk.exceptions import ActionFailure
 from soar_sdk.params import Params
 
-from ..app import Asset, VenafiHelper, app
+from ..asset import Asset
+from ..client import VenafiHelper
 from ..venafi_consts import VENAFI_LIST_POLICIES_URI
 
 
@@ -47,12 +48,6 @@ class ListPoliciesOutput(PermissiveActionOutput):
     TypeName: str | None = OutputField(example_values=["Policy"])
 
 
-@app.action(
-    description="Returns a list of all policies in Venafi",
-    action_type="investigate",
-    summary_type=ListPoliciesSummary,
-    render_as="table",
-)
 def list_policies(
     params: Params, soar: SOARClient, asset: Asset
 ) -> list[ListPoliciesOutput]:

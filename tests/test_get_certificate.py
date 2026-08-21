@@ -37,7 +37,7 @@ def test_sensitive_params_are_redacted_and_streamed_to_vault():
             _fake_response([b"cert-", b"data"]),
             "cert.cer",
         )
-        out = get_certificate.__wrapped__(params, soar, MagicMock())
+        out = get_certificate(params, soar, MagicMock())
 
     # Passwords cleared so they never reach the serialized action result.
     assert params.keystore_password is None
@@ -59,4 +59,4 @@ def test_empty_download_is_rejected():
             "cert.cer",
         )
         with pytest.raises(ActionFailure, match="empty"):
-            get_certificate.__wrapped__(params, soar, MagicMock())
+            get_certificate(params, soar, MagicMock())

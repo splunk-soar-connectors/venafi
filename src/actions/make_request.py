@@ -19,7 +19,8 @@ from soar_sdk.action_results import ActionOutput, OutputField
 from soar_sdk.exceptions import ActionFailure
 from soar_sdk.params import MakeRequestParams, Param
 
-from ..app import Asset, VenafiHelper, app
+from ..asset import Asset
+from ..client import VenafiHelper
 from ..venafi_consts import VENAFI_DEFAULT_TIMEOUT
 
 
@@ -47,7 +48,6 @@ class VenafiMakeRequestOutput(ActionOutput):
         return cls(status_code=response.status_code, response_body=response.text)
 
 
-@app.make_request()
 def http_action(
     params: VenafiMakeRequestParams, soar: SOARClient, asset: Asset
 ) -> VenafiMakeRequestOutput:

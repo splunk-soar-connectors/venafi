@@ -18,7 +18,8 @@ from soar_sdk.action_results import ActionOutput, OutputField
 from soar_sdk.exceptions import ActionFailure
 from soar_sdk.params import Param, Params
 
-from ..app import Asset, VenafiHelper, app
+from ..asset import Asset
+from ..client import VenafiHelper
 from ..venafi_consts import VENAFI_CREATE_CERTIFICATE_URI
 
 
@@ -121,14 +122,6 @@ def _parse_json_array(raw: str | None, field_name: str) -> list:
         ) from None
 
 
-@app.action(
-    description="Enrolls a certificate in Venafi",
-    action_type="generic",
-    read_only=False,
-    verbose="Either Subject or ObjectName parameter must be filled out.",
-    summary_type=CreateCertificateSummary,
-    render_as="table",
-)
 def create_certificate(
     params: CreateCertificateParams, soar: SOARClient, asset: Asset
 ) -> CreateCertificateOutput:

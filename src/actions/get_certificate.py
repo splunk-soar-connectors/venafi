@@ -20,7 +20,8 @@ from soar_sdk.action_results import ActionOutput, OutputField
 from soar_sdk.exceptions import ActionFailure
 from soar_sdk.params import Param, Params
 
-from ..app import Asset, VenafiHelper, app
+from ..asset import Asset
+from ..client import VenafiHelper
 from ..venafi_consts import (
     VENAFI_DOWNLOAD_CHUNK_SIZE,
     VENAFI_GET_CERTIFICATE_PARAMS,
@@ -73,11 +74,6 @@ class GetCertificateOutput(ActionOutput):
     size: float | None = OutputField(column_name="File Size", example_values=[2074])
 
 
-@app.action(
-    description="Downloads specified certificate to the vault",
-    action_type="investigate",
-    render_as="table",
-)
 def get_certificate(
     params: GetCertificateParams, soar: SOARClient, asset: Asset
 ) -> GetCertificateOutput:

@@ -16,7 +16,8 @@ from soar_sdk.action_results import ActionOutput
 from soar_sdk.exceptions import ActionFailure
 from soar_sdk.params import Param, Params
 
-from ..app import Asset, VenafiHelper, app
+from ..asset import Asset
+from ..client import VenafiHelper
 from ..venafi_consts import VENAFI_RENEW_CERTIFICATE_URI
 
 
@@ -42,14 +43,6 @@ class RenewCertificateSummary(ActionOutput):
     status: str | None = None
 
 
-@app.action(
-    description="Requests immediate renewal for an existing certificate in Venafi",
-    action_type="generic",
-    read_only=False,
-    verbose="A renewable certificate cannot be currently processing, in error, or contain a 'Monitoring' Management Type.",
-    summary_type=RenewCertificateSummary,
-    render_as="table",
-)
 def renew_certificate(
     params: RenewCertificateParams, soar: SOARClient, asset: Asset
 ) -> RenewCertificateOutput:

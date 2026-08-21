@@ -16,7 +16,8 @@ from soar_sdk.action_results import ActionOutput, OutputField, PermissiveActionO
 from soar_sdk.exceptions import ActionFailure
 from soar_sdk.params import Param, Params
 
-from ..app import Asset, VenafiHelper, app
+from ..asset import Asset
+from ..client import VenafiHelper
 from ..venafi_consts import (
     VENAFI_LIST_CERTIFICATES_PARAMS,
     VENAFI_LIST_CERTIFICATES_URI,
@@ -157,13 +158,6 @@ class ListCertificatesOutput(PermissiveActionOutput):
     links: list[LinksOutput] | None = OutputField(alias="_links")
 
 
-@app.action(
-    description="Returns a list of certificates in Venafi",
-    action_type="investigate",
-    verbose="Returns certificate details and the total number of certificates that match specified search filters.",
-    summary_type=ListCertificatesSummary,
-    render_as="table",
-)
 def list_certificates(
     params: ListCertificatesParams, soar: SOARClient, asset: Asset
 ) -> list[ListCertificatesOutput]:
@@ -191,13 +185,13 @@ def list_certificates(
         VENAFI_LIST_CERTIFICATES_URI, method="get", params=query
     )
 
-    if not isinstance(response, dict):
-        raise ActionFailure("Unexpected response from Venafi")
-    # Venafi omits the "Certificates" key when a search matches nothing;
-    # treat that as zero results (success) rather than an error.
-    certificates = response.get("Certificates") or []
-    if not isinstance(certificates, list):
-        raise ActionFailure("Unexpected 'Certificates' field type in Venafi response")
+    if not isinstance(response, dict) or not isinstance(
+        response.get("Certificates"), list
+    ):
+        raise ActionFailure(
+            "Unexpected response from Venafi: missing 'Certificates' list"
+        )
+    certificates = response["Certificates"]
     soar.set_summary(ListCertificatesSummary(num_certificates=len(certificates)))
     soar.set_message(f"Successfully retrieved {len(certificates)} certificates")
     return [ListCertificatesOutput(**cert) for cert in certificates]

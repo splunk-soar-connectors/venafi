@@ -16,7 +16,8 @@ from soar_sdk.action_results import ActionOutput, OutputField
 from soar_sdk.exceptions import ActionFailure
 from soar_sdk.params import Param, Params
 
-from ..app import Asset, VenafiHelper, app
+from ..asset import Asset
+from ..client import VenafiHelper
 from ..venafi_consts import VENAFI_REVOKE_CERTIFICATE_URI
 
 
@@ -58,14 +59,6 @@ class RevokeCertificateSummary(ActionOutput):
     status: str | None = None
 
 
-@app.action(
-    description="Requests to revoke an existing certificate in Venafi",
-    action_type="correct",
-    read_only=False,
-    verbose="The caller must have write permissions to the certificate object and either the CertificateDN or the Thumbprint parameter must be provided.",
-    summary_type=RevokeCertificateSummary,
-    render_as="table",
-)
 def revoke_certificate(
     params: RevokeCertificateParams, soar: SOARClient, asset: Asset
 ) -> RevokeCertificateOutput:

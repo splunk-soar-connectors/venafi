@@ -5,7 +5,7 @@ from types import SimpleNamespace
 from unittest.mock import MagicMock
 
 from src import venafi_consts as consts
-from src.app import VenafiHelper
+from src.client import VenafiHelper
 
 
 class FakeAuthState:

@@ -30,7 +30,7 @@ def test_list_policies_success():
         "list_policies", {"Objects": [{"Name": "P1", "DN": "\\VED\\Policy\\P1"}]}
     )
     try:
-        out = list_policies.__wrapped__(MagicMock(), soar, MagicMock())
+        out = list_policies(MagicMock(), soar, MagicMock())
     finally:
         patcher.stop()
 
@@ -45,7 +45,7 @@ def test_list_certificates_success():
         "list_certificates", {"Certificates": [{"DN": CERT_DN, "Name": "a.com"}]}
     )
     try:
-        out = list_certificates.__wrapped__(ListCertificatesParams(), soar, MagicMock())
+        out = list_certificates(ListCertificatesParams(), soar, MagicMock())
     finally:
         patcher.stop()
 
@@ -59,7 +59,7 @@ def test_list_certificates_rejects_limit_over_100():
         patch("src.actions.list_certificates.VenafiHelper"),
         pytest.raises(ActionFailure, match="limit"),
     ):
-        list_certificates.__wrapped__(
+        list_certificates(
             ListCertificatesParams(limit=101), MagicMock(), MagicMock()
         )
 
@@ -71,7 +71,7 @@ def test_create_certificate_success():
     )
     params = CreateCertificateParams(policy_dn="\\VED\\Policy\\test", subject="a.com")
     try:
-        out = create_certificate.__wrapped__(params, soar, MagicMock())
+        out = create_certificate(params, soar, MagicMock())
     finally:
         patcher.stop()
 
@@ -85,7 +85,7 @@ def test_renew_certificate_success():
     patcher, _ = _helper_returning("renew_certificate", {"Success": True})
     params = RenewCertificateParams(certificate_dn=CERT_DN)
     try:
-        out = renew_certificate.__wrapped__(params, soar, MagicMock())
+        out = renew_certificate(params, soar, MagicMock())
     finally:
         patcher.stop()
 
@@ -100,7 +100,7 @@ def test_revoke_certificate_success():
     )
     params = RevokeCertificateParams(certificate_dn=CERT_DN)
     try:
-        out = revoke_certificate.__wrapped__(params, soar, MagicMock())
+        out = revoke_certificate(params, soar, MagicMock())
     finally:
         patcher.stop()
 
@@ -123,7 +123,7 @@ def test_make_request_success():
         with patch(
             "src.actions.make_request.requests.request", return_value=resp
         ) as req:
-            out = http_action.__wrapped__(params, MagicMock(), asset)
+            out = http_action(params, MagicMock(), asset)
 
     assert out.status_code == 200
     assert req.call_args.kwargs["verify"] is True
