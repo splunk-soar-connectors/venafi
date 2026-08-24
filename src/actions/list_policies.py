@@ -42,9 +42,9 @@ class ListPoliciesOutput(PermissiveActionOutput):
     GUID: str | None = OutputField(
         example_values=["{TESTbb4b-1cde-4d48-9684-a04effa3be7f}"]
     )
-    Id: float | None = OutputField(example_values=[2139])
+    Id: int | None = OutputField(example_values=[2139])
     Parent: str | None = OutputField(example_values=["\\VED\\Policy\\Certificates"])
-    Revision: float | None = OutputField(example_values=[636747885144784172])
+    Revision: int | None = OutputField(example_values=[636747885144784172])
     TypeName: str | None = OutputField(example_values=["Policy"])
 
 

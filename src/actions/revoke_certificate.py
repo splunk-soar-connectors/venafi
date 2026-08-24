@@ -69,10 +69,14 @@ def revoke_certificate(
             "Error: Must pass in either CertificateDN or Thumbprint parameter"
         )
 
+    if params.reason is not None and params.reason != int(params.reason):
+        raise ActionFailure("'reason' must be a whole number")
+    reason = int(params.reason) if params.reason is not None else None
+
     data = {
         "CertificateDN": params.certificate_dn,
         "Thumbprint": params.thumbprint,
-        "Reason": int(params.reason) if params.reason is not None else None,
+        "Reason": reason,
         "Comments": params.comments,
         "Disable": params.disable or False,
     }
