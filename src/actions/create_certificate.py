@@ -68,7 +68,7 @@ class CreateCertificateParams(Params):
     key_algorithm: str | None = Param(
         description="Algorithm for public key of Certificate", value_list=["RSA", "ECC"]
     )
-    key_bit_size: float | None = Param(
+    key_bit_size: int | None = Param(
         description="The number of bits to allow for key generation"
     )
     management_type: str | None = Param(
@@ -122,15 +122,6 @@ def _parse_json_array(raw: str | None, field_name: str) -> list:
         ) from None
 
 
-def _whole_number(value: float | None, field_name: str) -> int | None:
-    """Convert an optional numeric param to int, rejecting non-whole values."""
-    if value is None:
-        return None
-    if value != int(value):
-        raise ActionFailure(f"'{field_name}' must be a whole number")
-    return int(value)
-
-
 def create_certificate(
     params: CreateCertificateParams, soar: SOARClient, asset: Asset
 ) -> CreateCertificateOutput:
@@ -153,7 +144,7 @@ def create_certificate(
         "DisableAutomaticRenewal": params.disable_automatic_renewal or False,
         "EllipticalCurve": params.elliptical_curve,
         "KeyAlgorithm": params.key_algorithm,
-        "KeyBitSize": _whole_number(params.key_bit_size, "key_bit_size"),
+        "KeyBitSize": params.key_bit_size,
         "ManagementType": params.management_type,
         "PolicyDN": params.policy_dn,
         "Subject": params.subject,

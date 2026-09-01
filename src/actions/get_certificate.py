@@ -11,19 +11,15 @@
 # either express or implied. See the License for the specific language governing permissions
 # and limitations under the License.
 
-import os
-import tempfile
-from pathlib import Path
-
+import httpx
 from soar_sdk.abstract import SOARClient
 from soar_sdk.action_results import ActionOutput, OutputField
 from soar_sdk.exceptions import ActionFailure
 from soar_sdk.params import Param, Params
 
 from ..asset import Asset
-from ..client import VenafiHelper
+from ..client import VenafiHelper, error_message
 from ..venafi_consts import (
-    VENAFI_DOWNLOAD_CHUNK_SIZE,
     VENAFI_GET_CERTIFICATE_PARAMS,
     VENAFI_GET_CERTIFICATE_URI,
 )
@@ -94,29 +90,41 @@ def get_certificate(
     params.keystore_password = None
     params.password = None
 
-    resp, file_name = helper.stream_certificate(VENAFI_GET_CERTIFICATE_URI, query)
-
-    # Stream the download to a temp file so memory stays bounded regardless of
-    # certificate/keystore size, then add the file to the vault.
-    tmp_dir = soar.vault.get_vault_tmp_dir()
-    fd, tmp_path = tempfile.mkstemp(dir=tmp_dir)
-    os.close(fd)
-    size = 0
+    # Download through the authenticated client. Certificates/keystores are small,
+    # so a buffered download is fine (and works cleanly with the auth handler).
     try:
-        with open(tmp_path, "wb") as f:
-            for chunk in resp.iter_content(chunk_size=VENAFI_DOWNLOAD_CHUNK_SIZE):
-                if chunk:
-                    f.write(chunk)
-                    size += len(chunk)
+        with helper.build_client() as client:
+            response = client.get(VENAFI_GET_CERTIFICATE_URI, params=query)
+            response.raise_for_status()
+            content = response.content
+    except httpx.HTTPStatusError as e:
+        raise ActionFailure(error_message(e.response)) from None
+    except httpx.HTTPError as e:
+        raise ActionFailure(f"Error downloading certificate: {e}") from None
 
-        if size == 0:
-            raise ActionFailure("Certificate download is empty")
+    if not content:
+        raise ActionFailure(
+            f"Certificate download is empty (status {response.status_code})"
+        )
 
+    content_disposition = response.headers.get("Content-Disposition", "")
+    file_name = (
+        content_disposition.split('"')[1]
+        if '"' in content_disposition
+        else "certificate"
+    )
+
+    # Store the downloaded bytes directly in the vault.
+    try:
         container_id = soar.get_executing_container_id()
-        vault_id = soar.vault.add_attachment(container_id, tmp_path, file_name)
-    finally:
-        resp.close()
-        Path(tmp_path).unlink(missing_ok=True)
+        vault_id = soar.vault.create_attachment(container_id, content, file_name)
+    except Exception as e:
+        raise ActionFailure(
+            f"Failed to store certificate in the vault: {type(e).__name__}: {e}"
+        ) from e
+
+    if not vault_id:
+        raise ActionFailure("Vault did not return an attachment id for the certificate")
 
     soar.set_message("Successfully retrieved certificate and added to the vault")
-    return GetCertificateOutput(name=file_name, size=size, vault_id=vault_id)
+    return GetCertificateOutput(name=file_name, size=len(content), vault_id=vault_id)

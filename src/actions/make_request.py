@@ -13,7 +13,7 @@
 
 import json
 
-import requests
+import httpx
 from soar_sdk.abstract import SOARClient
 from soar_sdk.action_results import ActionOutput, OutputField
 from soar_sdk.exceptions import ActionFailure
@@ -44,7 +44,7 @@ class VenafiMakeRequestOutput(ActionOutput):
     response_body: str = OutputField(example_values=["{}"])
 
     @classmethod
-    def from_response(cls, response: requests.Response) -> "VenafiMakeRequestOutput":
+    def from_response(cls, response: httpx.Response) -> "VenafiMakeRequestOutput":
         return cls(status_code=response.status_code, response_body=response.text)
 
 
@@ -59,10 +59,7 @@ def http_action(
         )
 
     helper = VenafiHelper(soar, asset)
-
-    base_url = asset.base_url.rstrip("/")
     endpoint = "/" + params.endpoint.lstrip("/")
-    url = f"{base_url}{endpoint}"
 
     user_headers: dict = {}
     if params.headers:
@@ -78,7 +75,8 @@ def http_action(
         except (json.JSONDecodeError, TypeError):
             # Raw query string passthrough: drop any URL fragment before appending.
             query_string = params.query_parameters.split("#", 1)[0].lstrip("?")
-            url = f"{url}?{query_string}" if "?" not in url else f"{url}&{query_string}"
+            sep = "&" if "?" in endpoint else "?"
+            endpoint = f"{endpoint}{sep}{query_string}"
 
     body = None
     if params.body:
@@ -89,26 +87,19 @@ def http_action(
 
     timeout = params.timeout or VENAFI_DEFAULT_TIMEOUT
 
-    def _send() -> requests.Response:
-        # Connector-generated auth headers take precedence over user-supplied ones.
-        headers = {**user_headers, **helper.auth_headers()}
-        return requests.request(
-            method=params.http_method,
-            url=url,
-            headers=headers,
-            params=query_params,
-            json=body,
-            timeout=timeout,
-            verify=params.verify_ssl,
-        )
-
+    # The authenticated client injects the bearer token (and refreshes on a 401)
+    # after the user headers are set, so connector auth takes precedence.
     try:
-        response = _send()
-        if response.status_code == 401:
-            # Cached token was stale; refresh and retry once, like the other actions.
-            helper.refresh()
-            response = _send()
-    except Exception as e:
+        with helper.build_client(verify=params.verify_ssl) as client:
+            response = client.request(
+                params.http_method,
+                endpoint,
+                headers=user_headers,
+                params=query_params,
+                json=body,
+                timeout=timeout,
+            )
+    except httpx.HTTPError as e:
         raise ActionFailure(f"Request failed: {e}") from e
 
     return VenafiMakeRequestOutput.from_response(response)

@@ -108,20 +108,19 @@ def test_revoke_certificate_success():
 
 def test_make_request_success():
     asset = MagicMock()
-    asset.base_url = "https://venafi.example"
     resp = MagicMock()
     resp.status_code = 200
     resp.text = '{"ok": true}'
     params = VenafiMakeRequestParams(http_method="GET", endpoint="/vedsdk/certificates")
 
     with patch("src.actions.make_request.VenafiHelper") as helper_cls:
-        helper_cls.return_value.auth_headers.return_value = {
-            "Authorization": "Bearer x"
-        }
-        with patch(
-            "src.actions.make_request.requests.request", return_value=resp
-        ) as req:
-            out = http_action(params, MagicMock(), asset)
+        client = (
+            helper_cls.return_value.build_client.return_value.__enter__.return_value
+        )
+        client.request.return_value = resp
+        out = http_action(params, MagicMock(), asset)
 
     assert out.status_code == 200
-    assert req.call_args.kwargs["verify"] is True
+    assert out.response_body == '{"ok": true}'
+    # verify_ssl defaults to True and is passed through to the authenticated client.
+    helper_cls.return_value.build_client.assert_called_once_with(verify=True)

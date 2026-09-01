@@ -5,7 +5,7 @@ from types import SimpleNamespace
 from unittest.mock import MagicMock
 
 from src import venafi_consts as consts
-from src.client import VenafiHelper
+from src.client import VenafiHelper, _load_token_state
 
 
 class FakeAuthState:
@@ -63,8 +63,8 @@ def test_token_reused_for_same_host():
             }
         }
     )
-    helper = VenafiHelper(MagicMock(), _asset_with_state(state))
-    assert helper._access_token == "A"
+    tokens = _load_token_state(_asset_with_state(state), "https://venafi.example")
+    assert tokens.get("access_token") == "A"
 
 
 def test_token_discarded_when_base_url_changes():
@@ -77,6 +77,5 @@ def test_token_discarded_when_base_url_changes():
             }
         }
     )
-    helper = VenafiHelper(MagicMock(), _asset_with_state(state))
-    assert helper._access_token is None
-    assert helper._refresh_token is None
+    tokens = _load_token_state(_asset_with_state(state), "https://venafi.example")
+    assert tokens == {}
