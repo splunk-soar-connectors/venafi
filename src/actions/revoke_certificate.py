@@ -11,13 +11,14 @@
 # either express or implied. See the License for the specific language governing permissions
 # and limitations under the License.
 
+import httpx
 from soar_sdk.abstract import SOARClient
 from soar_sdk.action_results import ActionOutput, OutputField
 from soar_sdk.exceptions import ActionFailure
 from soar_sdk.params import Param, Params
 
 from ..asset import Asset
-from ..client import VenafiHelper
+from ..venafi_auth import get_authenticated_client
 from ..venafi_consts import VENAFI_REVOKE_CERTIFICATE_URI
 
 
@@ -62,8 +63,6 @@ class RevokeCertificateSummary(ActionOutput):
 def revoke_certificate(
     params: RevokeCertificateParams, soar: SOARClient, asset: Asset
 ) -> RevokeCertificateOutput:
-    helper = VenafiHelper(soar, asset)
-
     if not (params.certificate_dn or params.thumbprint):
         raise ActionFailure(
             "Error: Must pass in either CertificateDN or Thumbprint parameter"
@@ -80,9 +79,24 @@ def revoke_certificate(
         "Comments": params.comments,
         "Disable": params.disable or False,
     }
-    response = helper.make_rest_call(
-        VENAFI_REVOKE_CERTIFICATE_URI, method="post", json_body=data
-    )
+    try:
+        with get_authenticated_client(asset) as client:
+            response = client.post(VENAFI_REVOKE_CERTIFICATE_URI, json=data)
+        if response.status_code == 401:
+            with get_authenticated_client(asset, refresh_token=True) as client:
+                response = client.post(VENAFI_REVOKE_CERTIFICATE_URI, json=data)
+        response.raise_for_status()
+    except httpx.HTTPStatusError as error:
+        raise ActionFailure(f"Failed to revoke certificate: {error}") from None
+    except httpx.HTTPError as error:
+        raise ActionFailure(f"Failed to revoke certificate: {error}") from None
+
+    try:
+        response = response.json()
+    except ValueError:
+        raise ActionFailure(
+            "Failed to revoke certificate: Venafi returned invalid JSON"
+        ) from None
 
     if not isinstance(response, dict) or response.get("Success") is not True:
         error = (

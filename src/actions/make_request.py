@@ -20,7 +20,7 @@ from soar_sdk.exceptions import ActionFailure
 from soar_sdk.params import MakeRequestParams, Param
 
 from ..asset import Asset
-from ..client import VenafiHelper
+from ..venafi_auth import get_authenticated_client
 from ..venafi_consts import VENAFI_DEFAULT_TIMEOUT
 
 
@@ -58,7 +58,6 @@ def http_action(
             "it is derived from the asset configuration."
         )
 
-    helper = VenafiHelper(soar, asset)
     endpoint = "/" + params.endpoint.lstrip("/")
 
     user_headers: dict = {}
@@ -87,10 +86,8 @@ def http_action(
 
     timeout = params.timeout or VENAFI_DEFAULT_TIMEOUT
 
-    # The authenticated client injects the bearer token (and refreshes on a 401)
-    # after the user headers are set, so connector auth takes precedence.
     try:
-        with helper.build_client(verify=params.verify_ssl) as client:
+        with get_authenticated_client(asset, verify_ssl=params.verify_ssl) as client:
             response = client.request(
                 params.http_method,
                 endpoint,
@@ -99,7 +96,19 @@ def http_action(
                 json=body,
                 timeout=timeout,
             )
-    except httpx.HTTPError as e:
-        raise ActionFailure(f"Request failed: {e}") from e
+        if response.status_code == 401:
+            with get_authenticated_client(
+                asset, verify_ssl=params.verify_ssl, refresh_token=True
+            ) as client:
+                response = client.request(
+                    params.http_method,
+                    endpoint,
+                    headers=user_headers,
+                    params=query_params,
+                    json=body,
+                    timeout=timeout,
+                )
+    except httpx.HTTPError as error:
+        raise ActionFailure(f"Request failed: {error}") from None
 
     return VenafiMakeRequestOutput.from_response(response)

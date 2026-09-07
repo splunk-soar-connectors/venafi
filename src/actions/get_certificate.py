@@ -18,7 +18,7 @@ from soar_sdk.exceptions import ActionFailure
 from soar_sdk.params import Param, Params
 
 from ..asset import Asset
-from ..client import VenafiHelper, error_message
+from ..venafi_auth import get_authenticated_client
 from ..venafi_consts import (
     VENAFI_GET_CERTIFICATE_PARAMS,
     VENAFI_GET_CERTIFICATE_URI,
@@ -73,8 +73,6 @@ class GetCertificateOutput(ActionOutput):
 def get_certificate(
     params: GetCertificateParams, soar: SOARClient, asset: Asset
 ) -> GetCertificateOutput:
-    helper = VenafiHelper(soar, asset)
-
     query: dict = {}
     for pkey, vkey in VENAFI_GET_CERTIFICATE_PARAMS.items():
         value = getattr(params, pkey, None)
@@ -90,17 +88,18 @@ def get_certificate(
     params.keystore_password = None
     params.password = None
 
-    # Download through the authenticated client. Certificates/keystores are small,
-    # so a buffered download is fine (and works cleanly with the auth handler).
     try:
-        with helper.build_client() as client:
+        with get_authenticated_client(asset) as client:
             response = client.get(VENAFI_GET_CERTIFICATE_URI, params=query)
-            response.raise_for_status()
-            content = response.content
-    except httpx.HTTPStatusError as e:
-        raise ActionFailure(error_message(e.response)) from None
-    except httpx.HTTPError as e:
-        raise ActionFailure(f"Error downloading certificate: {e}") from None
+        if response.status_code == 401:
+            with get_authenticated_client(asset, refresh_token=True) as client:
+                response = client.get(VENAFI_GET_CERTIFICATE_URI, params=query)
+        response.raise_for_status()
+        content = response.content
+    except httpx.HTTPStatusError as error:
+        raise ActionFailure(f"Failed to download certificate: {error}") from None
+    except httpx.HTTPError as error:
+        raise ActionFailure(f"Failed to download certificate: {error}") from None
 
     if not content:
         raise ActionFailure(

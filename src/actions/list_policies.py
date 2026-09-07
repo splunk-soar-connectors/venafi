@@ -11,13 +11,14 @@
 # either express or implied. See the License for the specific language governing permissions
 # and limitations under the License.
 
+import httpx
 from soar_sdk.abstract import SOARClient
 from soar_sdk.action_results import ActionOutput, OutputField, PermissiveActionOutput
 from soar_sdk.exceptions import ActionFailure
 from soar_sdk.params import Params
 
 from ..asset import Asset
-from ..client import VenafiHelper
+from ..venafi_auth import get_authenticated_client
 from ..venafi_consts import VENAFI_LIST_POLICIES_URI
 
 
@@ -51,11 +52,26 @@ class ListPoliciesOutput(PermissiveActionOutput):
 def list_policies(
     params: Params, soar: SOARClient, asset: Asset
 ) -> list[ListPoliciesOutput]:
-    helper = VenafiHelper(soar, asset)
+
     data = {"Class": "Policy", "ObjectDN": "\\VED\\Policy", "Recursive": 1}
-    response = helper.make_rest_call(
-        VENAFI_LIST_POLICIES_URI, method="post", json_body=data
-    )
+    try:
+        with get_authenticated_client(asset) as client:
+            response = client.post(VENAFI_LIST_POLICIES_URI, json=data)
+        if response.status_code == 401:
+            with get_authenticated_client(asset, refresh_token=True) as client:
+                response = client.post(VENAFI_LIST_POLICIES_URI, json=data)
+        response.raise_for_status()
+    except httpx.HTTPStatusError as error:
+        raise ActionFailure(f"Failed to list policies: {error}") from None
+    except httpx.HTTPError as error:
+        raise ActionFailure(f"Failed to list policies: {error}") from None
+
+    try:
+        response = response.json()
+    except ValueError:
+        raise ActionFailure(
+            "Failed to list policies: Venafi returned invalid JSON"
+        ) from None
 
     if not isinstance(response, dict) or not isinstance(response.get("Objects"), list):
         raise ActionFailure("Unexpected response from Venafi: missing 'Objects' list")

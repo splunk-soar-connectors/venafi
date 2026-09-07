@@ -13,13 +13,14 @@
 
 import json
 
+import httpx
 from soar_sdk.abstract import SOARClient
 from soar_sdk.action_results import ActionOutput, OutputField
 from soar_sdk.exceptions import ActionFailure
 from soar_sdk.params import Param, Params
 
 from ..asset import Asset
-from ..client import VenafiHelper
+from ..venafi_auth import get_authenticated_client
 from ..venafi_consts import VENAFI_CREATE_CERTIFICATE_URI
 
 
@@ -128,8 +129,6 @@ def create_certificate(
     if not (params.subject or params.object_name):
         raise ActionFailure("Either 'subject' or 'object_name' must be provided")
 
-    helper = VenafiHelper(soar, asset)
-
     data = {
         "Approvers": _parse_json_array(params.approvers, "approvers"),
         "CADN": params.cadn,
@@ -160,9 +159,24 @@ def create_certificate(
         "State": params.state,
     }
 
-    response = helper.make_rest_call(
-        VENAFI_CREATE_CERTIFICATE_URI, method="post", json_body=data
-    )
+    try:
+        with get_authenticated_client(asset) as client:
+            response = client.post(VENAFI_CREATE_CERTIFICATE_URI, json=data)
+        if response.status_code == 401:
+            with get_authenticated_client(asset, refresh_token=True) as client:
+                response = client.post(VENAFI_CREATE_CERTIFICATE_URI, json=data)
+        response.raise_for_status()
+    except httpx.HTTPStatusError as error:
+        raise ActionFailure(f"Failed to create certificate: {error}") from None
+    except httpx.HTTPError as error:
+        raise ActionFailure(f"Failed to create certificate: {error}") from None
+
+    try:
+        response = response.json()
+    except ValueError:
+        raise ActionFailure(
+            "Failed to create certificate: Venafi returned invalid JSON"
+        ) from None
 
     if (
         not isinstance(response, dict)

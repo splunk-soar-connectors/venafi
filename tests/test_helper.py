@@ -2,17 +2,13 @@
 """Test the configurable OAuth scope default (ESPM-5451)."""
 
 from types import SimpleNamespace
-from unittest.mock import MagicMock
-
 from src import venafi_consts as consts
-from src.client import VenafiHelper, _load_token_state
+from src.venafi_auth import VenafiAuth
 
 
 class FakeAuthState:
     def __init__(self, data=None):
         self._data = dict(data or {})
-        self.backend = MagicMock()
-        self.backend.load_state.return_value = {}
 
     def get_all(self):
         return dict(self._data)
@@ -33,13 +29,13 @@ def _asset(oauth_scope):
 
 
 def test_blank_scope_falls_back_to_default():
-    helper = VenafiHelper(MagicMock(), _asset(""))
-    assert helper.scope == consts.VENAFI_DEFAULT_SCOPE
+    auth = VenafiAuth(_asset(""))
+    assert auth._scope == consts.VENAFI_DEFAULT_SCOPE
 
 
 def test_custom_scope_is_used():
-    helper = VenafiHelper(MagicMock(), _asset("certificate:manage"))
-    assert helper.scope == "certificate:manage"
+    auth = VenafiAuth(_asset("certificate:manage"))
+    assert auth._scope == "certificate:manage"
 
 
 def _asset_with_state(state):
@@ -63,7 +59,7 @@ def test_token_reused_for_same_host():
             }
         }
     )
-    tokens = _load_token_state(_asset_with_state(state), "https://venafi.example")
+    tokens = VenafiAuth(_asset_with_state(state))._token_state()
     assert tokens.get("access_token") == "A"
 
 
@@ -77,5 +73,5 @@ def test_token_discarded_when_base_url_changes():
             }
         }
     )
-    tokens = _load_token_state(_asset_with_state(state), "https://venafi.example")
+    tokens = VenafiAuth(_asset_with_state(state))._token_state()
     assert tokens == {}
