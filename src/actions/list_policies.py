@@ -49,11 +49,7 @@ class ListPoliciesOutput(PermissiveActionOutput):
     TypeName: str | None = OutputField(example_values=["Policy"])
 
 
-def list_policies(
-    params: Params, soar: SOARClient, asset: Asset
-) -> list[ListPoliciesOutput]:
-
-    data = {"Class": "Policy", "ObjectDN": "\\VED\\Policy", "Recursive": 1}
+def _request_policies(asset: Asset, data: dict) -> object:
     try:
         with get_authenticated_client(asset) as client:
             response = client.post(VENAFI_LIST_POLICIES_URI, json=data)
@@ -65,13 +61,19 @@ def list_policies(
         raise ActionFailure(f"Failed to list policies: {error}") from None
     except httpx.HTTPError as error:
         raise ActionFailure(f"Failed to list policies: {error}") from None
-
     try:
-        response = response.json()
+        return response.json()
     except ValueError:
         raise ActionFailure(
             "Failed to list policies: Venafi returned invalid JSON"
         ) from None
+
+
+def list_policies(
+    params: Params, soar: SOARClient, asset: Asset
+) -> list[ListPoliciesOutput]:
+    data = {"Class": "Policy", "ObjectDN": "\\VED\\Policy", "Recursive": 1}
+    response = _request_policies(asset, data)
 
     if not isinstance(response, dict) or not isinstance(response.get("Objects"), list):
         raise ActionFailure("Unexpected response from Venafi: missing 'Objects' list")

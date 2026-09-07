@@ -70,6 +70,21 @@ class GetCertificateOutput(ActionOutput):
     size: float | None = OutputField(column_name="File Size", example_values=[2074])
 
 
+def _download_certificate(asset: Asset, query: dict) -> httpx.Response:
+    try:
+        with get_authenticated_client(asset) as client:
+            response = client.get(VENAFI_GET_CERTIFICATE_URI, params=query)
+        if response.status_code == 401:
+            with get_authenticated_client(asset, refresh_token=True) as client:
+                response = client.get(VENAFI_GET_CERTIFICATE_URI, params=query)
+        response.raise_for_status()
+        return response
+    except httpx.HTTPStatusError as error:
+        raise ActionFailure(f"Failed to download certificate: {error}") from None
+    except httpx.HTTPError as error:
+        raise ActionFailure(f"Failed to download certificate: {error}") from None
+
+
 def get_certificate(
     params: GetCertificateParams, soar: SOARClient, asset: Asset
 ) -> GetCertificateOutput:
@@ -88,18 +103,8 @@ def get_certificate(
     params.keystore_password = None
     params.password = None
 
-    try:
-        with get_authenticated_client(asset) as client:
-            response = client.get(VENAFI_GET_CERTIFICATE_URI, params=query)
-        if response.status_code == 401:
-            with get_authenticated_client(asset, refresh_token=True) as client:
-                response = client.get(VENAFI_GET_CERTIFICATE_URI, params=query)
-        response.raise_for_status()
-        content = response.content
-    except httpx.HTTPStatusError as error:
-        raise ActionFailure(f"Failed to download certificate: {error}") from None
-    except httpx.HTTPError as error:
-        raise ActionFailure(f"Failed to download certificate: {error}") from None
+    response = _download_certificate(asset, query)
+    content = response.content
 
     if not content:
         raise ActionFailure(

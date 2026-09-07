@@ -44,14 +44,7 @@ class RenewCertificateSummary(ActionOutput):
     status: str | None = None
 
 
-def renew_certificate(
-    params: RenewCertificateParams, soar: SOARClient, asset: Asset
-) -> RenewCertificateOutput:
-    data = {
-        "CertificateDN": params.certificate_dn,
-        "PKCS10": params.pkcs10,
-        "Reenable": params.reenable or False,
-    }
+def _request_renew_certificate(asset: Asset, data: dict) -> object:
     try:
         with get_authenticated_client(asset) as client:
             response = client.post(VENAFI_RENEW_CERTIFICATE_URI, json=data)
@@ -63,13 +56,23 @@ def renew_certificate(
         raise ActionFailure(f"Failed to renew certificate: {error}") from None
     except httpx.HTTPError as error:
         raise ActionFailure(f"Failed to renew certificate: {error}") from None
-
     try:
-        response = response.json()
+        return response.json()
     except ValueError:
         raise ActionFailure(
             "Failed to renew certificate: Venafi returned invalid JSON"
         ) from None
+
+
+def renew_certificate(
+    params: RenewCertificateParams, soar: SOARClient, asset: Asset
+) -> RenewCertificateOutput:
+    data = {
+        "CertificateDN": params.certificate_dn,
+        "PKCS10": params.pkcs10,
+        "Reenable": params.reenable or False,
+    }
+    response = _request_renew_certificate(asset, data)
 
     if not isinstance(response, dict) or response.get("Success") is not True:
         error = (

@@ -23,25 +23,27 @@ from .venafi_auth import get_authenticated_client
 logger = getLogger()
 
 
+def _verify_token(asset: Asset) -> None:
+    try:
+        with get_authenticated_client(asset, force_new_token=True) as client:
+            response = client.get(consts.VENAFI_VERIFY_TOKEN_URI)
+            response.raise_for_status()
+    except httpx.HTTPStatusError as error:
+        raise ActionFailure(f"Venafi token verification failed: {error}") from None
+    except httpx.HTTPError as error:
+        raise ActionFailure(f"Unable to verify Venafi token: {error}") from None
+
+    try:
+        response.json()
+    except ValueError:
+        raise ActionFailure("Venafi token verification returned invalid JSON") from None
+
+
 def run_test_connectivity(soar: SOARClient, asset: Asset) -> None:
     logger.info("Connecting to endpoint")
     try:
         # Force a fresh token so the configured scope is exercised, then verify it.
-        with get_authenticated_client(asset, force_new_token=True) as client:
-            response = client.get(consts.VENAFI_VERIFY_TOKEN_URI)
-            response.raise_for_status()
-        try:
-            response.json()
-        except ValueError:
-            raise ActionFailure(
-                "Venafi token verification returned invalid JSON"
-            ) from None
-    except httpx.HTTPStatusError as error:
-        logger.info(consts.TEST_CONNECTIVITY_FAILED)
-        raise ActionFailure(f"Venafi token verification failed: {error}") from None
-    except httpx.HTTPError as error:
-        logger.info(consts.TEST_CONNECTIVITY_FAILED)
-        raise ActionFailure(f"Unable to verify Venafi token: {error}") from None
+        _verify_token(asset)
     except ActionFailure:
         logger.info(consts.TEST_CONNECTIVITY_FAILED)
         raise

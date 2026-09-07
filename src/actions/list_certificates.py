@@ -159,6 +159,26 @@ class ListCertificatesOutput(PermissiveActionOutput):
     links: list[LinksOutput] | None = OutputField(alias="_links")
 
 
+def _request_certificates(asset: Asset, query: dict) -> object:
+    try:
+        with get_authenticated_client(asset) as client:
+            response = client.get(VENAFI_LIST_CERTIFICATES_URI, params=query)
+        if response.status_code == 401:
+            with get_authenticated_client(asset, refresh_token=True) as client:
+                response = client.get(VENAFI_LIST_CERTIFICATES_URI, params=query)
+        response.raise_for_status()
+    except httpx.HTTPStatusError as error:
+        raise ActionFailure(f"Failed to list certificates: {error}") from None
+    except httpx.HTTPError as error:
+        raise ActionFailure(f"Failed to list certificates: {error}") from None
+    try:
+        return response.json()
+    except ValueError:
+        raise ActionFailure(
+            "Failed to list certificates: Venafi returned invalid JSON"
+        ) from None
+
+
 def list_certificates(
     params: ListCertificatesParams, soar: SOARClient, asset: Asset
 ) -> list[ListCertificatesOutput]:
@@ -180,24 +200,7 @@ def list_certificates(
             raise ActionFailure("'offset' must be a non-negative integer")
         query["offset"] = int(params.offset)
 
-    try:
-        with get_authenticated_client(asset) as client:
-            response = client.get(VENAFI_LIST_CERTIFICATES_URI, params=query)
-        if response.status_code == 401:
-            with get_authenticated_client(asset, refresh_token=True) as client:
-                response = client.get(VENAFI_LIST_CERTIFICATES_URI, params=query)
-        response.raise_for_status()
-    except httpx.HTTPStatusError as error:
-        raise ActionFailure(f"Failed to list certificates: {error}") from None
-    except httpx.HTTPError as error:
-        raise ActionFailure(f"Failed to list certificates: {error}") from None
-
-    try:
-        response = response.json()
-    except ValueError:
-        raise ActionFailure(
-            "Failed to list certificates: Venafi returned invalid JSON"
-        ) from None
+    response = _request_certificates(asset, query)
 
     if not isinstance(response, dict) or not isinstance(
         response.get("Certificates"), list

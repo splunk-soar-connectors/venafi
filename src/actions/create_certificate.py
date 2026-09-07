@@ -111,6 +111,26 @@ class CreateCertificateSummary(ActionOutput):
     status: str | None = None
 
 
+def _request_create_certificate(asset: Asset, data: dict) -> object:
+    try:
+        with get_authenticated_client(asset) as client:
+            response = client.post(VENAFI_CREATE_CERTIFICATE_URI, json=data)
+        if response.status_code == 401:
+            with get_authenticated_client(asset, refresh_token=True) as client:
+                response = client.post(VENAFI_CREATE_CERTIFICATE_URI, json=data)
+        response.raise_for_status()
+    except httpx.HTTPStatusError as error:
+        raise ActionFailure(f"Failed to create certificate: {error}") from None
+    except httpx.HTTPError as error:
+        raise ActionFailure(f"Failed to create certificate: {error}") from None
+    try:
+        return response.json()
+    except ValueError:
+        raise ActionFailure(
+            "Failed to create certificate: Venafi returned invalid JSON"
+        ) from None
+
+
 def _parse_json_array(raw: str | None, field_name: str) -> list:
     """Parse an optional JSON-array action parameter, defaulting to an empty list."""
     if not raw:
@@ -159,24 +179,7 @@ def create_certificate(
         "State": params.state,
     }
 
-    try:
-        with get_authenticated_client(asset) as client:
-            response = client.post(VENAFI_CREATE_CERTIFICATE_URI, json=data)
-        if response.status_code == 401:
-            with get_authenticated_client(asset, refresh_token=True) as client:
-                response = client.post(VENAFI_CREATE_CERTIFICATE_URI, json=data)
-        response.raise_for_status()
-    except httpx.HTTPStatusError as error:
-        raise ActionFailure(f"Failed to create certificate: {error}") from None
-    except httpx.HTTPError as error:
-        raise ActionFailure(f"Failed to create certificate: {error}") from None
-
-    try:
-        response = response.json()
-    except ValueError:
-        raise ActionFailure(
-            "Failed to create certificate: Venafi returned invalid JSON"
-        ) from None
+    response = _request_create_certificate(asset, data)
 
     if (
         not isinstance(response, dict)

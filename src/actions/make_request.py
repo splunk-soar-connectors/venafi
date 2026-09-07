@@ -48,6 +48,42 @@ class VenafiMakeRequestOutput(ActionOutput):
         return cls(status_code=response.status_code, response_body=response.text)
 
 
+def _send_request(
+    asset: Asset,
+    params: VenafiMakeRequestParams,
+    endpoint: str,
+    headers: dict,
+    query_params: dict | None,
+    body: dict | None,
+    timeout: int | float,
+) -> httpx.Response:
+    try:
+        with get_authenticated_client(asset, verify_ssl=params.verify_ssl) as client:
+            response = client.request(
+                params.http_method,
+                endpoint,
+                headers=headers,
+                params=query_params,
+                json=body,
+                timeout=timeout,
+            )
+        if response.status_code == 401:
+            with get_authenticated_client(
+                asset, verify_ssl=params.verify_ssl, refresh_token=True
+            ) as client:
+                response = client.request(
+                    params.http_method,
+                    endpoint,
+                    headers=headers,
+                    params=query_params,
+                    json=body,
+                    timeout=timeout,
+                )
+        return response
+    except httpx.HTTPError as error:
+        raise ActionFailure(f"Request failed: {error}") from None
+
+
 def http_action(
     params: VenafiMakeRequestParams, soar: SOARClient, asset: Asset
 ) -> VenafiMakeRequestOutput:
@@ -86,29 +122,8 @@ def http_action(
 
     timeout = params.timeout or VENAFI_DEFAULT_TIMEOUT
 
-    try:
-        with get_authenticated_client(asset, verify_ssl=params.verify_ssl) as client:
-            response = client.request(
-                params.http_method,
-                endpoint,
-                headers=user_headers,
-                params=query_params,
-                json=body,
-                timeout=timeout,
-            )
-        if response.status_code == 401:
-            with get_authenticated_client(
-                asset, verify_ssl=params.verify_ssl, refresh_token=True
-            ) as client:
-                response = client.request(
-                    params.http_method,
-                    endpoint,
-                    headers=user_headers,
-                    params=query_params,
-                    json=body,
-                    timeout=timeout,
-                )
-    except httpx.HTTPError as error:
-        raise ActionFailure(f"Request failed: {error}") from None
+    response = _send_request(
+        asset, params, endpoint, user_headers, query_params, body, timeout
+    )
 
     return VenafiMakeRequestOutput.from_response(response)
