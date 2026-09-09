@@ -177,3 +177,4 @@ pyrightconfig.json
 
 test_asset.json
 *.tgz
+.DS_Store

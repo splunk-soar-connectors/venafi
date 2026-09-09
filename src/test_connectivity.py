@@ -18,7 +18,7 @@ from soar_sdk.logging import getLogger
 
 from . import venafi_consts as consts
 from .asset import Asset
-from .venafi_auth import get_authenticated_client
+from .venafi_auth import VenafiAuth, get_authenticated_client
 
 logger = getLogger()
 
@@ -45,6 +45,9 @@ def run_test_connectivity(soar: SOARClient, asset: Asset) -> None:
         # Force a fresh token so the configured scope is exercised, then verify it.
         _verify_token(asset)
     except ActionFailure:
+        # A forced token is stored before verification; if verification fails,
+        # clear it so an unverified token is not left cached in asset.auth_state.
+        VenafiAuth(asset).clear_token()
         logger.info(consts.TEST_CONNECTIVITY_FAILED)
         raise
 
