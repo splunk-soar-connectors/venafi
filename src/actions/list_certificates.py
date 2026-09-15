@@ -18,7 +18,7 @@ from soar_sdk.exceptions import ActionFailure
 from soar_sdk.params import Param, Params
 
 from ..asset import Asset
-from ..venafi_auth import get_authenticated_client
+from ..venafi_auth import error_message, get_authenticated_client
 from ..venafi_consts import (
     VENAFI_LIST_CERTIFICATES_PARAMS,
     VENAFI_LIST_CERTIFICATES_URI,
@@ -168,7 +168,9 @@ def _request_certificates(asset: Asset, query: dict) -> object:
                 response = client.get(VENAFI_LIST_CERTIFICATES_URI, params=query)
         response.raise_for_status()
     except httpx.HTTPStatusError as error:
-        raise ActionFailure(f"Failed to list certificates: {error}") from None
+        raise ActionFailure(
+            f"Failed to list certificates: {error_message(error.response)}"
+        ) from None
     except httpx.HTTPError as error:
         raise ActionFailure(f"Failed to list certificates: {error}") from None
     try:

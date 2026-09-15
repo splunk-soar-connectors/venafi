@@ -18,7 +18,7 @@ from soar_sdk.logging import getLogger
 
 from . import venafi_consts as consts
 from .asset import Asset
-from .venafi_auth import VenafiAuth, get_authenticated_client
+from .venafi_auth import VenafiAuth, error_message, get_authenticated_client
 
 logger = getLogger()
 
@@ -29,7 +29,9 @@ def _verify_token(asset: Asset) -> None:
             response = client.get(consts.VENAFI_VERIFY_TOKEN_URI)
             response.raise_for_status()
     except httpx.HTTPStatusError as error:
-        raise ActionFailure(f"Venafi token verification failed: {error}") from None
+        raise ActionFailure(
+            f"Venafi token verification failed: {error_message(error.response)}"
+        ) from None
     except httpx.HTTPError as error:
         raise ActionFailure(f"Unable to verify Venafi token: {error}") from None
 

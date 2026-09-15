@@ -18,7 +18,7 @@ from soar_sdk.exceptions import ActionFailure
 from soar_sdk.params import Param, Params
 
 from ..asset import Asset
-from ..venafi_auth import get_authenticated_client
+from ..venafi_auth import error_message, get_authenticated_client
 from ..venafi_consts import (
     VENAFI_GET_CERTIFICATE_PARAMS,
     VENAFI_GET_CERTIFICATE_URI,
@@ -80,7 +80,9 @@ def _download_certificate(asset: Asset, query: dict) -> httpx.Response:
         response.raise_for_status()
         return response
     except httpx.HTTPStatusError as error:
-        raise ActionFailure(f"Failed to download certificate: {error}") from None
+        raise ActionFailure(
+            f"Failed to download certificate: {error_message(error.response)}"
+        ) from None
     except httpx.HTTPError as error:
         raise ActionFailure(f"Failed to download certificate: {error}") from None
 

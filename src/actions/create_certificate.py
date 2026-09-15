@@ -20,7 +20,7 @@ from soar_sdk.exceptions import ActionFailure
 from soar_sdk.params import Param, Params
 
 from ..asset import Asset
-from ..venafi_auth import get_authenticated_client
+from ..venafi_auth import error_message, get_authenticated_client
 from ..venafi_consts import VENAFI_CREATE_CERTIFICATE_URI
 
 
@@ -120,7 +120,9 @@ def _request_create_certificate(asset: Asset, data: dict) -> object:
                 response = client.post(VENAFI_CREATE_CERTIFICATE_URI, json=data)
         response.raise_for_status()
     except httpx.HTTPStatusError as error:
-        raise ActionFailure(f"Failed to create certificate: {error}") from None
+        raise ActionFailure(
+            f"Failed to create certificate: {error_message(error.response)}"
+        ) from None
     except httpx.HTTPError as error:
         raise ActionFailure(f"Failed to create certificate: {error}") from None
     try:

@@ -28,6 +28,20 @@ logger = getLogger()
 _TOKEN_STATE_KEY = "venafi_token"  # noqa: S105  # pragma: allowlist secret
 
 
+def error_message(response: httpx.Response) -> str:
+    """Return Venafi's error message from a response, else the status and body text."""
+    try:
+        data = response.json()
+    except ValueError:
+        data = {}
+    if isinstance(data, dict):
+        if data.get("error_description"):
+            return str(data["error_description"])
+        if data.get("Error"):
+            return str(data["Error"])
+    return f"HTTP {response.status_code}: {response.text[:300]}"
+
+
 class VenafiAuth:
     """Bridge Venafi's token endpoints and the SDK asset authentication state."""
 
