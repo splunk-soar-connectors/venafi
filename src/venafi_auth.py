@@ -39,7 +39,10 @@ def error_message(response: httpx.Response) -> str:
             return str(data["error_description"])
         if data.get("Error"):
             return str(data["Error"])
-    return f"HTTP {response.status_code}: {response.text[:300]}"
+    return (
+        f"Unexpected non-JSON response from server (Status Code: {response.status_code}). "
+        "Verify the Venafi API URL and any proxy/gateway between SOAR and Venafi."
+    )
 
 
 class VenafiAuth:
@@ -88,7 +91,9 @@ class VenafiAuth:
                 response = client.post(endpoint, json=body)
                 response.raise_for_status()
         except httpx.HTTPStatusError as error:
-            raise ActionFailure(f"Venafi token request failed: {error}") from None
+            raise ActionFailure(
+                f"Venafi token request failed: {error_message(error.response)}"
+            ) from None
         except httpx.HTTPError as error:
             raise ActionFailure(f"Unable to request a Venafi token: {error}") from None
 
