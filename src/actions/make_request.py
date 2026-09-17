@@ -102,16 +102,25 @@ def http_action(
             user_headers = json.loads(params.headers)
         except (json.JSONDecodeError, TypeError) as e:
             raise ActionFailure(f"Invalid JSON headers: {params.headers}") from e
+        if not isinstance(user_headers, dict):
+            raise ActionFailure("The 'headers' parameter must be a JSON object")
 
     query_params = None
     if params.query_parameters:
         try:
-            query_params = json.loads(params.query_parameters)
+            parsed = json.loads(params.query_parameters)
         except (json.JSONDecodeError, TypeError):
             # Raw query string passthrough: drop any URL fragment before appending.
             query_string = params.query_parameters.split("#", 1)[0].lstrip("?")
             sep = "&" if "?" in endpoint else "?"
             endpoint = f"{endpoint}{sep}{query_string}"
+        else:
+            if not isinstance(parsed, dict):
+                raise ActionFailure(
+                    "The 'query_parameters' parameter must be a JSON object "
+                    "or a raw query string"
+                )
+            query_params = parsed
 
     body = None
     if params.body:
