@@ -11,6 +11,11 @@
 # either express or implied. See the License for the specific language governing permissions
 # and limitations under the License.
 
+import contextlib
+import os
+import tempfile
+from pathlib import Path
+
 import httpx
 from soar_sdk.abstract import SOARClient
 from soar_sdk.action_results import ActionOutput, OutputField
@@ -70,21 +75,50 @@ class GetCertificateOutput(ActionOutput):
     size: float | None = OutputField(column_name="File Size", example_values=[2074])
 
 
-def _download_certificate(asset: Asset, query: dict) -> httpx.Response:
-    try:
-        with get_authenticated_client(asset) as client:
-            response = client.get(VENAFI_GET_CERTIFICATE_URI, params=query)
-        if response.status_code == 401:
-            with get_authenticated_client(asset, refresh_token=True) as client:
-                response = client.get(VENAFI_GET_CERTIFICATE_URI, params=query)
-        response.raise_for_status()
-        return response
-    except httpx.HTTPStatusError as error:
-        raise ActionFailure(
-            f"Failed to download certificate: {error_message(error.response)}"
-        ) from None
-    except httpx.HTTPError as error:
-        raise ActionFailure(f"Failed to download certificate: {error}") from None
+_CHUNK_SIZE = 65536
+
+
+def _file_name_from_headers(response: httpx.Response) -> str:
+    disposition = response.headers.get("Content-Disposition", "")
+    return disposition.split('"')[1] if '"' in disposition else "certificate"
+
+
+def _download_certificate_to_file(
+    asset: Asset, query: dict, dest_path: str
+) -> tuple[str, int]:
+    for attempt, refresh in enumerate((False, True)):
+        try:
+            with (
+                get_authenticated_client(asset, refresh_token=refresh) as client,
+                client.stream(
+                    "GET", VENAFI_GET_CERTIFICATE_URI, params=query
+                ) as response,
+            ):
+                if response.status_code == 401 and attempt == 0:
+                    continue
+                if response.is_error:
+                    response.read()
+                    raise ActionFailure(
+                        f"Failed to download certificate: {error_message(response)}"
+                    )
+                file_name = _file_name_from_headers(response)
+                size = 0
+                with open(dest_path, "wb") as handle:
+                    for chunk in response.iter_bytes(chunk_size=_CHUNK_SIZE):
+                        handle.write(chunk)
+                        size += len(chunk)
+                if size == 0:
+                    raise ActionFailure(
+                        f"Certificate download is empty (status {response.status_code})"
+                    )
+                return file_name, size
+        except httpx.HTTPError as error:
+            raise ActionFailure(f"Failed to download certificate: {error}") from None
+        except OSError as error:
+            raise ActionFailure(
+                f"Failed to write certificate to disk: {error}"
+            ) from None
+    raise ActionFailure("Failed to download certificate: authentication failed (401)")
 
 
 def get_certificate(
@@ -100,37 +134,28 @@ def get_certificate(
     query["IncludePrivateKey"] = params.include_private_key or False
     query["RootFirstOrder"] = params.root_first_order or False
 
-    # Redact the sensitive password params so they are not echoed back into the
-    # action result parameters (the SDK serializes params into the result).
     params.keystore_password = None
     params.password = None
 
-    response = _download_certificate(asset, query)
-    content = response.content
-
-    if not content:
-        raise ActionFailure(
-            f"Certificate download is empty (status {response.status_code})"
-        )
-
-    content_disposition = response.headers.get("Content-Disposition", "")
-    file_name = (
-        content_disposition.split('"')[1]
-        if '"' in content_disposition
-        else "certificate"
-    )
-
-    # Store the downloaded bytes directly in the vault.
+    tmp_dir = soar.vault.get_vault_tmp_dir()
+    fd, tmp_path = tempfile.mkstemp(dir=tmp_dir)
+    os.close(fd)
     try:
-        container_id = soar.get_executing_container_id()
-        vault_id = soar.vault.create_attachment(container_id, content, file_name)
-    except Exception as e:
-        raise ActionFailure(
-            f"Failed to store certificate in the vault: {type(e).__name__}: {e}"
-        ) from e
-
-    if not vault_id:
-        raise ActionFailure("Vault did not return an attachment id for the certificate")
+        file_name, size = _download_certificate_to_file(asset, query, tmp_path)
+        try:
+            container_id = soar.get_executing_container_id()
+            vault_id = soar.vault.add_attachment(container_id, tmp_path, file_name)
+        except Exception as e:
+            raise ActionFailure(
+                f"Failed to store certificate in the vault: {type(e).__name__}: {e}"
+            ) from e
+        if not vault_id:
+            raise ActionFailure(
+                "Vault did not return an attachment id for the certificate"
+            )
+    finally:
+        with contextlib.suppress(OSError):
+            Path(tmp_path).unlink()
 
     soar.set_message("Successfully retrieved certificate and added to the vault")
-    return GetCertificateOutput(name=file_name, size=len(content), vault_id=vault_id)
+    return GetCertificateOutput(name=file_name, size=size, vault_id=vault_id)

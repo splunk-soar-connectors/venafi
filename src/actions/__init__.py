@@ -29,6 +29,7 @@ def register_actions(app: App) -> App:
         action=list_certificates,
         description="Returns a list of certificates in Venafi",
         action_type="investigate",
+        read_only=True,
         verbose="Returns certificate details and the total number of certificates that match specified search filters.",
         summary_type=ListCertificatesSummary,
         render_as="table",
@@ -37,6 +38,7 @@ def register_actions(app: App) -> App:
         action=list_policies,
         description="Returns a list of all policies in Venafi",
         action_type="investigate",
+        read_only=True,
         summary_type=ListPoliciesSummary,
         render_as="table",
     )
@@ -44,6 +46,7 @@ def register_actions(app: App) -> App:
         action=get_certificate,
         description="Downloads specified certificate to the vault",
         action_type="investigate",
+        read_only=True,
         render_as="table",
     )
     app.register_action(
