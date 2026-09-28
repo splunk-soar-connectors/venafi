@@ -255,6 +255,7 @@ action_result.parameter.root_first_order | boolean | | |
 action_result.data.\*.name | string | | pge.com.cer |
 action_result.data.\*.vault_id | string | `sha1` `vault id` | TEST86f38c9e7c50c1998c0ce0974faab4c9TEST |
 action_result.data.\*.size | numeric | | 2074 |
+action_result.summary.status | string | | |
 summary.total_objects | numeric | | 1 |
 summary.total_objects_successful | numeric | | 1 |
 

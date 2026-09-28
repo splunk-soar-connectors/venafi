@@ -75,6 +75,10 @@ class GetCertificateOutput(ActionOutput):
     size: float | None = OutputField(column_name="File Size", example_values=[2074])
 
 
+class GetCertificateSummary(ActionOutput):
+    status: str | None = None
+
+
 _CHUNK_SIZE = 65536
 
 
@@ -157,5 +161,10 @@ def get_certificate(
         with contextlib.suppress(OSError):
             Path(tmp_path).unlink()
 
+    soar.set_summary(
+        GetCertificateSummary(
+            status="Successfully retrieved certificate and added to the vault"
+        )
+    )
     soar.set_message("Successfully retrieved certificate and added to the vault")
     return GetCertificateOutput(name=file_name, size=size, vault_id=vault_id)

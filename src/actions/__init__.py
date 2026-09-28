@@ -14,7 +14,7 @@
 from soar_sdk.app import App
 
 from .create_certificate import CreateCertificateSummary, create_certificate
-from .get_certificate import get_certificate
+from .get_certificate import GetCertificateSummary, get_certificate
 from .list_certificates import ListCertificatesSummary, list_certificates
 from .list_policies import ListPoliciesSummary, list_policies
 from .make_request import http_action
@@ -47,6 +47,7 @@ def register_actions(app: App) -> App:
         description="Downloads specified certificate to the vault",
         action_type="investigate",
         read_only=True,
+        summary_type=GetCertificateSummary,
         render_as="table",
     )
     app.register_action(
