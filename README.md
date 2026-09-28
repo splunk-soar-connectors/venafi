@@ -1,7 +1,7 @@
 # Venafi
 
 Publisher: Splunk <br>
-Connector Version: 2.3.0 <br>
+Connector Version: 3.0.0 <br>
 Product Vendor: Venafi <br>
 Product Name: Venafi <br>
 Minimum Product Version: 8.6.0
