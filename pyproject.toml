@@ -1,13 +1,13 @@
 [project]
 name = "venafi"
-version = "3.0.0"
+version = "3.0.1"
 description = "This app integrates with an instance of Venafi to perform generic and investigative actions"
 license = "Copyright (c) 2019-2026 Splunk Inc."
 requires-python = ">=3.13, <3.15"
 authors = [
 ]
 dependencies = [
-    "splunk-soar-sdk>=5.0.0",
+    "splunk-soar-sdk>=6.1.2",
 ]
 
 [tool.soar.app]
